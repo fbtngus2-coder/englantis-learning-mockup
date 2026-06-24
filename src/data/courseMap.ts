@@ -1,0 +1,78 @@
+import type { CourseNode } from "../types/navigation";
+
+export const sessionIcons: Record<string, string> = {
+  home: "⌂",
+  map: "✦",
+  daily: "◇",
+  weekly: "W",
+  monthly: "M",
+  sentence: "S",
+  rune: "R",
+  npc: "N",
+};
+
+export const courseNodes: CourseNode[] = [
+  {
+    id: "w1d1",
+    label: "W1 D1",
+    title: "First Light Words",
+    subtitle: "Completed",
+    status: "done",
+    x: 16,
+    y: 34,
+  },
+  {
+    id: "w1d2",
+    label: "W1 D2",
+    title: "Action Sparks",
+    subtitle: "Completed",
+    status: "done",
+    x: 30,
+    y: 35,
+  },
+  {
+    id: "w2d1",
+    label: "W2 D1",
+    title: "Town Signals",
+    subtitle: "Completed",
+    status: "done",
+    x: 43,
+    y: 47,
+  },
+  {
+    id: "w2d2",
+    label: "W2 D2",
+    title: "Place Clues",
+    subtitle: "Completed",
+    status: "done",
+    x: 51,
+    y: 38,
+  },
+  {
+    id: "w2d3",
+    label: "W2 D3",
+    title: "Places and Prepositions",
+    subtitle: "Today's Course",
+    status: "today",
+    x: 61,
+    y: 52,
+  },
+  {
+    id: "w2d4",
+    label: "W2 D4",
+    title: "Route Practice",
+    subtitle: "Locked",
+    status: "locked",
+    x: 73,
+    y: 37,
+  },
+  {
+    id: "boss",
+    label: "BOSS",
+    title: "Weekly Fog Gate",
+    subtitle: "Locked",
+    status: "locked",
+    x: 86,
+    y: 50,
+  },
+];
