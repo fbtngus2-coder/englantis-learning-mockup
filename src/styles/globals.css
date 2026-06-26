@@ -17,6 +17,360 @@
   --red: #d77b71;
 }
 
+/* DO hub entry previews must not inherit legacy activity character sizing. */
+.do-hub-page .mission-stage-atlas {
+  width: 100%;
+  min-height: clamp(560px, 62vh, 760px);
+  border-radius: 22px;
+}
+
+.do-hub-page .mission-stage-play {
+  min-height: 0;
+  overflow: visible;
+}
+
+.do-preview {
+  width: 100%;
+  height: 100%;
+  min-height: 390px;
+  display: grid;
+  grid-template-columns: minmax(260px, .82fr) minmax(360px, 1.18fr);
+  gap: clamp(18px, 2.6vw, 34px);
+  align-items: stretch;
+  padding: clamp(18px, 2.4vw, 32px);
+  overflow: hidden;
+  border: 1px solid rgba(99, 229, 191, .26);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 78% 24%, rgba(99, 229, 191, .18), transparent 34%),
+    linear-gradient(135deg, rgba(5, 35, 32, .9), rgba(2, 18, 18, .94));
+}
+
+.do-preview-copy {
+  display: grid;
+  align-content: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.do-preview-copy > span {
+  width: fit-content;
+  padding: 7px 12px;
+  color: #123b32;
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--gold), var(--mint));
+}
+
+.do-preview-copy h2 {
+  margin: 0;
+  color: var(--parchment);
+  font-family: "Cormorant Garamond", serif;
+  font-size: clamp(42px, 4.8vw, 76px);
+  line-height: .9;
+}
+
+.do-preview-copy p {
+  max-width: 46ch;
+  margin: 0;
+  color: #bfd4ca;
+  font-size: clamp(14px, 1vw, 17px);
+  line-height: 1.6;
+}
+
+.do-preview-copy dl {
+  display: grid;
+  gap: 10px;
+  margin: 8px 0 0;
+}
+
+.do-preview-copy dl div {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 11px 13px;
+  border: 1px solid rgba(245, 217, 140, .22);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, .16);
+}
+
+.do-preview-copy dt {
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.do-preview-copy dd {
+  min-width: 0;
+  margin: 0;
+  color: #f8efd0;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.do-preview-scene {
+  position: relative;
+  min-width: 0;
+  min-height: 320px;
+  overflow: hidden;
+  border: 1px solid rgba(99, 229, 191, .24);
+  border-radius: 18px;
+  background:
+    radial-gradient(ellipse at 50% 82%, rgba(99, 229, 191, .18), transparent 42%),
+    linear-gradient(180deg, rgba(5, 31, 31, .68), rgba(0, 11, 12, .86));
+}
+
+.do-preview-npc-scene,
+.do-preview-cultist-scene,
+.do-preview-rune-scene,
+.do-preview-sentence-scene {
+  position: absolute;
+  inset: 0;
+}
+
+.do-preview-milo {
+  position: absolute;
+  left: 8%;
+  bottom: 0;
+  z-index: 2;
+  width: min(34%, 250px);
+  max-height: 88%;
+  object-fit: contain;
+  object-position: center bottom;
+  filter: drop-shadow(0 18px 30px rgba(0, 0, 0, .54));
+}
+
+.do-preview-map {
+  position: absolute;
+  right: 8%;
+  top: 18%;
+  width: min(48%, 420px);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 12px;
+  align-items: center;
+}
+
+.do-preview-map span,
+.do-preview-bubble,
+.do-preview-rune-scene span,
+.do-preview-sentence-scene span,
+.do-preview-sentence-scene b {
+  color: #123b32;
+  font-weight: 950;
+  border-radius: 999px;
+  background: rgba(255, 247, 221, .94);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, .24);
+}
+
+.do-preview-map span {
+  padding: 12px 14px;
+  text-align: center;
+}
+
+.do-preview-map i {
+  width: 68px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--mint);
+  box-shadow: 0 0 22px rgba(99, 229, 191, .6);
+}
+
+.do-preview-bubble {
+  position: absolute;
+  right: 6%;
+  bottom: 18%;
+  max-width: min(54%, 460px);
+  padding: 16px 20px;
+  font-size: clamp(17px, 1.6vw, 28px);
+  line-height: 1.18;
+}
+
+.do-preview-cultist-scene {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: clamp(14px, 2vw, 24px);
+}
+
+.do-preview-cultist-card {
+  position: relative;
+  display: grid;
+  place-items: end center;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(99, 229, 191, .28);
+  border-radius: 16px;
+  background:
+    radial-gradient(ellipse at 50% 76%, rgba(99, 229, 191, .18), transparent 38%),
+    linear-gradient(180deg, rgba(0, 18, 18, .18), rgba(0, 8, 9, .64));
+}
+
+.do-preview-cultist-card::before {
+  content: "";
+  position: absolute;
+  inset: 36px 6px 58px;
+  background-image: var(--preview-image);
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: contain;
+  filter: drop-shadow(0 16px 26px rgba(0, 0, 0, .56));
+}
+
+.do-preview-cultist-card i {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  color: var(--parchment);
+  font-style: normal;
+  font-weight: 950;
+  border: 1px solid rgba(245, 217, 140, .74);
+  border-radius: 50%;
+  background: rgba(3, 28, 27, .78);
+  transform: translateX(-50%);
+}
+
+.do-preview-cultist-card b {
+  position: relative;
+  z-index: 2;
+  max-width: calc(100% - 18px);
+  margin-bottom: 18px;
+  padding: 9px 12px;
+  color: #123b32;
+  font-size: clamp(13px, .95vw, 17px);
+  text-align: center;
+  border-radius: 999px;
+  background: rgba(255, 247, 221, .94);
+}
+
+.do-preview-rune-scene,
+.do-preview-sentence-scene {
+  display: grid;
+  grid-template-columns: minmax(180px, .7fr) minmax(230px, 1fr);
+  gap: 18px;
+  align-items: center;
+  padding: clamp(18px, 2.4vw, 32px);
+}
+
+.do-preview-rune-scene img,
+.do-preview-sentence-scene img {
+  width: min(100%, 280px);
+  justify-self: center;
+  filter: drop-shadow(0 22px 30px rgba(0, 0, 0, .5));
+}
+
+.do-preview-rune-scene div,
+.do-preview-sentence-scene div {
+  display: grid;
+  gap: 12px;
+}
+
+.do-preview-rune-scene span,
+.do-preview-sentence-scene span,
+.do-preview-sentence-scene b {
+  width: fit-content;
+  max-width: 100%;
+  padding: 11px 16px;
+  font-size: clamp(16px, 1.3vw, 24px);
+}
+
+.do-hub-page .mission-stage-action {
+  position: relative;
+  z-index: 5;
+}
+
+.do-hub-page .mission-stage-action .button {
+  min-width: 154px;
+  white-space: nowrap;
+}
+
+.cultist-atlas-card::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset: clamp(36px, 4.2vw, 62px) 6px clamp(70px, 7.2vw, 96px);
+  background-image: var(--cultist-image);
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: contain;
+  filter: drop-shadow(0 18px 28px rgba(0, 0, 0, .55));
+  pointer-events: none;
+}
+
+.cultist-atlas-card > img:not(.cultist-atlas-hammer) {
+  opacity: 0;
+}
+
+.cultist-atlas-card.revealed::after {
+  filter: brightness(1.1) drop-shadow(0 18px 30px rgba(99, 229, 191, .28));
+}
+
+.phase-cultistFleeing .cultist-atlas-card.revealed::after {
+  transform-origin: center bottom;
+  animation: cultistFleeAway .95s ease-in both;
+}
+
+.reward-toast img[hidden],
+.cultist-atlas-feedback img[hidden] {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .do-preview {
+    grid-template-columns: 1fr;
+    min-height: 560px;
+  }
+
+  .do-preview-scene {
+    min-height: 300px;
+  }
+
+  .do-preview-copy h2 {
+    font-size: clamp(36px, 12vw, 54px);
+  }
+
+  .do-preview-copy dl div {
+    grid-template-columns: 1fr;
+  }
+
+  .do-preview-rune-scene,
+  .do-preview-sentence-scene {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .do-preview {
+    padding: 14px;
+  }
+
+  .do-preview-cultist-scene {
+    grid-template-columns: 1fr;
+  }
+
+  .do-preview-cultist-card {
+    min-height: 180px;
+  }
+
+  .do-preview-map,
+  .do-preview-bubble {
+    left: 12px;
+    right: 12px;
+    width: auto;
+    max-width: none;
+  }
+}
+
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 320px; min-height: 100vh; color: #f1ecd8; font-family: "Noto Sans KR", "Malgun Gothic", Arial, sans-serif; background: var(--bg); }
 button { font: inherit; }
@@ -56,6 +410,12 @@ button:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3p
 .button-danger { color: white; background: #9a4b4b; }
 .button:disabled { opacity: .35; cursor: not-allowed; }
 .hero-actions, .center-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.scene-topline-actions { align-items: center; gap: 12px; }
+.scene-topline-actions b { margin-left: auto; }
+.scene-topline-actions .button { min-height: 34px; padding: 8px 12px; font-size: 10px; white-space: nowrap; }
+.do-hub-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+.do-hub-actions .button { min-height: 42px; padding: 10px 14px; font-size: 11px; white-space: nowrap; }
+.do-hub-actions .completion-ring { flex: 0 0 auto; }
 .center-actions { justify-content: center; margin-top: 30px; }
 .parchment-panel { position: relative; color: var(--ink); padding: 25px; border: 1px solid rgba(255, 234, 174, .7); border-radius: 6px; background: linear-gradient(135deg, rgba(248, 241, 216, .98), rgba(222, 208, 169, .97)); box-shadow: inset 0 0 0 3px rgba(113, 85, 40, .12), 0 20px 45px rgba(0, 0, 0, .18); }
 .parchment-panel::after { content: ""; position: absolute; inset: 7px; pointer-events: none; border: 1px solid rgba(90, 65, 29, .16); border-radius: 3px; }
@@ -547,6 +907,826 @@ button:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3p
 .dialogue-name { position: absolute; top: -17px; left: 20px; min-width: 140px; padding: 8px 20px; text-align: center; color: var(--gold-bright); border: 1px solid #967a43; background: #0f3630; font-family: "Cormorant Garamond"; font-weight: 700; }
 .dialogue-box p { color: #eef2e8; font-size: 14px; line-height: 1.8; margin: 0; }
 .dialogue-next { position: absolute; right: 24px; bottom: 24px; color: var(--gold-bright); background: none; border: 0; font-size: 11px; cursor: pointer; }.dialogue-next span { font-size: 22px; vertical-align: -2px; margin-left: 5px; }
+
+.watch-studio-page {
+  width: min(1640px, calc(100% - 32px));
+  padding-top: 18px;
+}
+
+.watch-studio-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: end;
+  margin-bottom: 18px;
+}
+
+.watch-studio-heading h1 {
+  max-width: 780px;
+  margin: 7px 0 8px;
+  color: #fff1cf;
+  font-family: "Cormorant Garamond";
+  font-size: clamp(34px, 3.6vw, 58px);
+  line-height: 1.02;
+}
+
+.watch-studio-heading p {
+  max-width: 760px;
+  margin: 0;
+  color: #adc7bc;
+  line-height: 1.65;
+  word-break: keep-all;
+}
+
+.watch-top-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.watch-studio-layout {
+  position: relative;
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 18px;
+  min-height: calc(100vh - 176px);
+}
+
+.watch-lecture-list,
+.watch-main-stage,
+.watch-pix-ai-panel {
+  border: 1px solid rgba(214, 170, 88, .36);
+  background: linear-gradient(145deg, rgba(5, 35, 33, .9), rgba(3, 17, 18, .94));
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .34), inset 0 0 0 1px rgba(255,255,255,.04);
+}
+
+.watch-lecture-list {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 16px;
+}
+
+.watch-lecture-list > span,
+.watch-stage-topline span,
+.watch-caption-panel span,
+.watch-pix-ai-panel header span,
+.watch-master-copy span {
+  color: var(--gold-bright);
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.watch-lecture-list button {
+  min-height: 86px;
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+  color: #ddece4;
+  text-align: left;
+  border: 1px solid rgba(99, 229, 191, .18);
+  border-radius: 8px;
+  background: rgba(3, 22, 23, .64);
+  cursor: pointer;
+}
+
+.watch-lecture-list button.active {
+  color: #fff5d8;
+  border-color: rgba(99, 229, 191, .8);
+  background: linear-gradient(135deg, rgba(28, 95, 80, .82), rgba(14, 39, 55, .78));
+  box-shadow: 0 0 24px rgba(99, 229, 191, .13);
+}
+
+.watch-lecture-list i {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  color: #102d28;
+  font-style: normal;
+  font-weight: 950;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold-bright), var(--mint));
+}
+
+.watch-lecture-list b,
+.watch-lecture-list small {
+  display: block;
+}
+
+.watch-lecture-list b {
+  font-size: 15px;
+  line-height: 1.25;
+}
+
+.watch-lecture-list small {
+  margin-top: 4px;
+  color: #90aaa0;
+  font-size: 11px;
+}
+
+.watch-objective-card {
+  margin-top: 8px;
+  padding: 14px;
+  color: #dcebe4;
+  border: 1px solid rgba(245, 217, 140, .28);
+  border-radius: 8px;
+  background: rgba(2, 15, 16, .56);
+}
+
+.watch-objective-card small,
+.watch-objective-card b,
+.watch-objective-card p {
+  display: block;
+}
+
+.watch-objective-card b {
+  margin-top: 8px;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.watch-objective-card p {
+  margin: 10px 0 0;
+  color: var(--mint-soft);
+  font-family: "Cormorant Garamond";
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.watch-main-stage {
+  min-width: 0;
+  padding: 18px;
+}
+
+.watch-stage-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.watch-stage-topline b {
+  color: #f8efd2;
+  font-size: 18px;
+}
+
+.watch-stage-topline small {
+  color: #91aaa1;
+  font-weight: 800;
+}
+
+.watch-media-frame {
+  position: relative;
+  min-height: 430px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(99, 229, 191, .28);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(2, 11, 13, .08), rgba(2, 11, 13, .62)),
+    radial-gradient(circle at 50% 20%, rgba(99, 229, 191, .22), transparent 44%),
+    #020809;
+}
+
+.watch-lecture-video {
+  width: 100%;
+  max-height: min(66vh, 680px);
+  aspect-ratio: 16 / 9;
+  display: block;
+  object-fit: contain;
+  background: #020607;
+}
+
+.watch-fullscreen-button {
+  position: absolute;
+  right: 18px;
+  top: 18px;
+  min-height: 38px;
+  padding: 0 14px;
+  color: #102d28;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--gold-bright), var(--mint));
+  font-weight: 950;
+  cursor: pointer;
+  box-shadow: 0 10px 25px rgba(0,0,0,.28);
+}
+
+.watch-pix-button {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  display: grid;
+  grid-template-columns: 58px auto;
+  gap: 8px;
+  align-items: center;
+  min-height: 62px;
+  padding: 6px 14px 6px 6px;
+  color: #fff2cf;
+  border: 1px solid rgba(99, 229, 191, .56);
+  border-radius: 999px;
+  background: rgba(5, 40, 37, .9);
+  cursor: pointer;
+  box-shadow: 0 16px 36px rgba(0,0,0,.38);
+}
+
+.watch-pix-button.active {
+  border-color: var(--gold-bright);
+  box-shadow: 0 0 0 3px rgba(245, 217, 140, .18), 0 16px 36px rgba(0,0,0,.38);
+}
+
+.watch-pix-button img {
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 15px rgba(0,0,0,.4));
+}
+
+.watch-pix-button span {
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: .12em;
+}
+
+.watch-master-board {
+  width: 100%;
+  min-height: 590px;
+  display: grid;
+  grid-template-columns: minmax(220px, .35fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: stretch;
+  padding: 18px;
+}
+
+.watch-master-copy {
+  align-self: stretch;
+  display: grid;
+  align-content: center;
+  padding: 22px;
+  color: #dcece4;
+  border: 1px solid rgba(245, 217, 140, .28);
+  border-radius: 8px;
+  background: rgba(3, 21, 23, .7);
+}
+
+.watch-master-speaker {
+  position: relative;
+  min-height: 100%;
+  align-content: space-between;
+  justify-items: center;
+  gap: 12px;
+  overflow: hidden;
+  padding: 20px 18px 18px;
+  background:
+    radial-gradient(circle at 50% 34%, rgba(99, 229, 191, .2), transparent 34%),
+    rgba(3, 21, 23, .72);
+}
+
+.watch-master-speaker::before {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  border: 1px solid rgba(99, 229, 191, .12);
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+.watch-master-copy b {
+  display: block;
+  margin: 14px 0 10px;
+  color: #fff1cf;
+  font-family: "Cormorant Garamond";
+  font-size: clamp(34px, 3vw, 50px);
+  line-height: 1;
+}
+
+.watch-master-copy p {
+  margin: 0;
+  color: #b8cec3;
+  line-height: 1.65;
+  word-break: keep-all;
+}
+
+.watch-master-character {
+  position: relative;
+  z-index: 1;
+  width: min(230px, 86%);
+  max-height: 330px;
+  object-fit: contain;
+  filter: drop-shadow(0 18px 24px rgba(0, 0, 0, .44));
+  animation: watchMasterSpeak 2.5s ease-in-out infinite;
+}
+
+.watch-master-speech {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid rgba(245, 217, 140, .36);
+  border-radius: 8px;
+  background: rgba(2, 15, 16, .78);
+}
+
+.watch-master-speech::before {
+  content: "";
+  position: absolute;
+  left: 42px;
+  top: -9px;
+  width: 16px;
+  height: 16px;
+  border-left: 1px solid rgba(245, 217, 140, .36);
+  border-top: 1px solid rgba(245, 217, 140, .36);
+  background: rgba(2, 15, 16, .78);
+  transform: rotate(45deg);
+}
+
+.watch-master-speech strong {
+  display: block;
+  color: var(--gold-bright);
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.watch-master-speech p {
+  margin-top: 7px;
+  color: #f0fbf4;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.watch-master-page-image {
+  width: 100%;
+  height: min(62vh, 650px);
+  object-fit: contain;
+  border-radius: 8px;
+  background: rgba(255,255,255,.92);
+  box-shadow: 0 18px 45px rgba(0,0,0,.35);
+}
+
+.watch-page-switcher {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.watch-page-switcher button {
+  width: 36px;
+  height: 36px;
+  color: #dff3eb;
+  border: 1px solid rgba(99, 229, 191, .3);
+  border-radius: 50%;
+  background: rgba(2, 20, 21, .8);
+  cursor: pointer;
+}
+
+.watch-page-switcher button.active {
+  color: #102d28;
+  border-color: transparent;
+  background: var(--gold-bright);
+}
+
+.watch-master-subtitle {
+  grid-column: 1 / -1;
+  min-height: 60px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 12px 16px;
+  color: #f7f2dc;
+  border: 1px solid rgba(245, 217, 140, .34);
+  border-radius: 8px;
+  background: rgba(1, 12, 14, .82);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, .24);
+}
+
+.watch-master-subtitle b {
+  color: var(--gold-bright);
+  font-size: 12px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.watch-master-subtitle span {
+  color: #f4fbf5;
+  font-size: 16px;
+  line-height: 1.5;
+  word-break: keep-all;
+}
+
+@keyframes watchMasterSpeak {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-6px) scale(1.012);
+  }
+}
+
+.watch-caption-panel {
+  display: grid;
+  grid-template-columns: minmax(240px, .42fr) 1fr;
+  gap: 18px;
+  margin-top: 14px;
+  padding: 16px;
+  color: #e3f1e9;
+  border: 1px solid rgba(214, 170, 88, .26);
+  border-radius: 8px;
+  background: rgba(4, 27, 27, .62);
+}
+
+.watch-caption-panel h2 {
+  margin: 7px 0 8px;
+  color: #fff2cf;
+  font-size: 24px;
+}
+
+.watch-caption-panel p {
+  margin: 0;
+  color: #a9c0b6;
+  line-height: 1.55;
+}
+
+.watch-caption-panel ul {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.watch-caption-panel li {
+  padding: 10px 12px;
+  border-left: 3px solid var(--mint);
+  border-radius: 6px;
+  background: rgba(2, 15, 16, .5);
+  line-height: 1.45;
+}
+
+.watch-pix-ai-panel {
+  position: absolute;
+  z-index: 12;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(390px, 38vw);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(105%);
+  transition: transform .25s ease, opacity .25s ease;
+}
+
+.watch-pix-ai-panel.open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+}
+
+.watch-pix-ai-panel header {
+  display: grid;
+  grid-template-columns: 58px 1fr 36px;
+  gap: 10px;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(214, 170, 88, .26);
+}
+
+.watch-pix-ai-panel header img {
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+}
+
+.watch-pix-ai-panel header b {
+  display: block;
+  margin-top: 4px;
+  color: #fff1cf;
+}
+
+.watch-pix-close {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  color: #f7edcf;
+  border: 1px solid rgba(245, 217, 140, .38);
+  border-radius: 50%;
+  background: rgba(3, 18, 19, .72);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.watch-pix-thread {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.watch-pix-message {
+  position: relative;
+  padding: 11px 12px;
+  border-radius: 8px;
+  background: rgba(2, 16, 17, .66);
+}
+
+.watch-pix-message.student {
+  margin-left: 30px;
+  border: 1px solid rgba(245, 217, 140, .34);
+}
+
+.watch-pix-message.pix {
+  margin-right: 18px;
+  border: 1px solid rgba(99, 229, 191, .34);
+}
+
+.watch-pix-message b {
+  color: var(--gold-bright);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.watch-pix-message p {
+  margin: 6px 0 0;
+  color: #f1f7ee;
+  font-size: 14px;
+  line-height: 1.55;
+  white-space: pre-line;
+  word-break: keep-all;
+}
+
+.watch-pix-message small {
+  display: block;
+  margin-top: 8px;
+  color: #9db9ad;
+  line-height: 1.45;
+  white-space: pre-line;
+}
+
+.watch-pix-message em {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  color: #102d28;
+  border-radius: 999px;
+  background: var(--mint);
+  padding: 2px 6px;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 950;
+}
+
+.watch-quick-questions {
+  display: grid;
+  gap: 8px;
+}
+
+.watch-quick-questions button {
+  padding: 9px 10px;
+  color: #dff3eb;
+  text-align: left;
+  border: 1px solid rgba(99, 229, 191, .22);
+  border-radius: 8px;
+  background: rgba(4, 26, 28, .8);
+  cursor: pointer;
+}
+
+.watch-quick-questions button:disabled {
+  opacity: .55;
+  cursor: default;
+}
+
+.watch-pix-form {
+  display: grid;
+  gap: 9px;
+}
+
+.watch-pix-form textarea {
+  width: 100%;
+  min-height: 86px;
+  resize: vertical;
+  padding: 12px;
+  color: #f8f1dc;
+  border: 1px solid rgba(99, 229, 191, .36);
+  border-radius: 8px;
+  background: rgba(2, 12, 14, .86);
+  font: inherit;
+  line-height: 1.45;
+  outline: none;
+}
+
+.watch-pix-form textarea:focus {
+  border-color: var(--gold-bright);
+  box-shadow: 0 0 0 3px rgba(245, 217, 140, .14);
+}
+
+.watch-pix-form button {
+  min-height: 42px;
+  color: #102d28;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--gold-bright), var(--mint));
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.watch-pix-form button:disabled {
+  opacity: .5;
+  cursor: default;
+}
+
+.watch-atlas-demo {
+  width: min(820px, 100%);
+  display: grid;
+  gap: 12px;
+}
+
+.watch-atlas-demo video,
+.watch-atlas-demo iframe,
+.watch-atlas-demo > img {
+  width: 100%;
+  max-height: 390px;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  border: 1px solid rgba(99, 229, 191, .3);
+  border-radius: 8px;
+  background: #030b0c;
+}
+
+.watch-atlas-demo iframe {
+  min-height: 260px;
+}
+
+.watch-atlas-demo > img {
+  background: rgba(255,255,255,.92);
+}
+
+.watch-atlas-pix {
+  display: grid;
+  grid-template-columns: 54px 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  color: #eff8ef;
+  border: 1px solid rgba(214, 170, 88, .3);
+  border-radius: 8px;
+  background: rgba(5, 36, 34, .76);
+}
+
+.watch-atlas-pix img {
+  width: 54px;
+  height: 54px;
+  object-fit: contain;
+}
+
+.watch-atlas-pix p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.watch-atlas-pix small {
+  display: block;
+  margin-top: 4px;
+  color: #96b3a8;
+  font-size: 10px;
+}
+
+.watch-atlas-pix .lab-action {
+  justify-self: start;
+  margin-top: 6px;
+}
+
+@media (max-width: 1180px) {
+  .watch-studio-heading {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .watch-top-actions {
+    justify-content: flex-start;
+  }
+
+  .watch-studio-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .watch-lecture-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .watch-lecture-list > span,
+  .watch-objective-card {
+    grid-column: 1 / -1;
+  }
+
+  .watch-pix-ai-panel {
+    position: fixed;
+    inset: auto 16px 16px auto;
+    width: min(420px, calc(100vw - 32px));
+    max-height: min(720px, calc(100vh - 32px));
+  }
+}
+
+@media (max-width: 780px) {
+  .watch-studio-page {
+    width: min(100% - 20px, 680px);
+  }
+
+  .watch-lecture-list {
+    grid-template-columns: 1fr;
+  }
+
+  .watch-main-stage {
+    padding: 12px;
+  }
+
+  .watch-stage-topline,
+  .watch-caption-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .watch-media-frame {
+    min-height: 260px;
+  }
+
+  .watch-lecture-video {
+    max-height: 48vh;
+  }
+
+  .watch-master-board {
+    min-height: 0;
+    grid-template-columns: 1fr;
+    padding: 12px;
+  }
+
+  .watch-master-speaker {
+    min-height: 370px;
+  }
+
+  .watch-master-character {
+    width: min(190px, 54vw);
+    max-height: 240px;
+  }
+
+  .watch-master-board > img {
+    height: min(48vh, 480px);
+  }
+
+  .watch-master-subtitle {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+
+  .watch-master-subtitle span {
+    font-size: 14px;
+  }
+
+  .watch-pix-button {
+    right: 10px;
+    bottom: 10px;
+    grid-template-columns: 44px auto;
+    min-height: 50px;
+  }
+
+  .watch-pix-button img {
+    width: 44px;
+    height: 44px;
+  }
+
+  .watch-fullscreen-button {
+    right: 10px;
+    top: 10px;
+  }
+
+  .watch-pix-ai-panel {
+    inset: 10px;
+    width: auto;
+    max-height: none;
+  }
+
+  .watch-pix-ai-panel.open {
+    transform: none;
+  }
+}
 .activity-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
 .activity-card { color: #e9eedf; text-align: left; padding: 0 0 24px; border: 1px solid rgba(214, 170, 88, .35); border-radius: 5px; background: linear-gradient(150deg, #103832, #071c1b); overflow: hidden; cursor: pointer; transition: .25s ease; }
 .activity-card:hover { transform: translateY(-6px); border-color: var(--gold); box-shadow: 0 18px 50px rgba(0, 0, 0, .3); }
@@ -933,6 +2113,11 @@ button:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3p
   box-shadow: 0 0 0 1px rgba(245, 217, 140, .45), 0 0 45px rgba(245, 217, 140, .2);
 }
 
+.cultist-npc-card.innocent {
+  border-color: rgba(241, 154, 117, .72);
+  box-shadow: 0 0 0 1px rgba(241, 154, 117, .28), 0 0 38px rgba(241, 154, 117, .15);
+}
+
 .cultist-npc-card.revealed-cultist {
   animation: cultistReveal .55s ease;
 }
@@ -970,6 +2155,42 @@ button:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3p
   filter: drop-shadow(0 28px 18px rgba(0, 0, 0, .55));
   transform: translateY(-8px);
   animation: cultistIdleFloat 2.2s ease-in-out infinite alternate;
+}
+
+.cultist-mission-page.phase-hammerAttack .cultist-npc-card.selected .cultist-npc-portrait img:not(.cultist-hammer-hero) {
+  animation: cultistSuspectJolt .58s ease-out both;
+}
+
+.cultist-mission-page.phase-correctReveal .cultist-npc-card.revealed-cultist .cultist-npc-portrait img:not(.cultist-hammer-hero) {
+  animation: cultistRevealStand .72s ease-out both;
+}
+
+.cultist-mission-page.phase-cultistFleeing .cultist-npc-card.revealed-cultist .cultist-npc-portrait img:not(.cultist-hammer-hero) {
+  animation: cultistFleeAway .95s ease-in both;
+}
+
+.cultist-npc-card.innocent .cultist-npc-portrait img:not(.cultist-hammer-hero) {
+  animation: cultistInnocentFlinch .72s ease-out both;
+}
+
+.cultist-npc-reaction {
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  top: 8px;
+  max-width: min(88%, 340px);
+  padding: 9px 16px;
+  color: #123b32;
+  border: 1px solid rgba(245, 217, 140, .68);
+  border-radius: 999px;
+  background: #fff7dd;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, .3), 0 0 20px rgba(245, 217, 140, .16);
+  font-size: clamp(12px, .92vw, 15px);
+  font-weight: 950;
+  line-height: 1.25;
+  transform: translateX(-50%);
+  pointer-events: none;
+  animation: cultistSpeechPop .28s ease-out both;
 }
 
 .cultist-npc-info {
@@ -1095,6 +2316,128 @@ button:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3p
   padding: clamp(12px, 2vh, 22px);
 }
 
+.activity-focus-mode .scene-do-cultist.activity-sandbox {
+  padding: 18px 30px;
+}
+
+.activity-focus-mode .cultist-atlas-game {
+  grid-template-rows: auto auto auto minmax(330px, 1fr) auto;
+  gap: 7px;
+  padding: 14px 24px 16px;
+}
+
+.activity-focus-mode .cultist-atlas-header h3 {
+  margin: 3px 0 2px;
+  font-size: clamp(28px, 2.45vw, 38px);
+}
+
+.activity-focus-mode .cultist-atlas-header p {
+  font-size: 13px;
+}
+
+.activity-focus-mode .cultist-atlas-rule {
+  min-height: 44px;
+  padding: 8px 14px;
+}
+
+.activity-focus-mode .cultist-atlas-brief {
+  min-height: 34px;
+  padding: 5px 12px;
+}
+
+.activity-focus-mode .cultist-atlas-feedback {
+  min-height: 70px;
+  padding: 9px 14px;
+}
+
+.activity-focus-mode .cultist-atlas-feedback img {
+  width: 60px;
+  height: 60px;
+}
+
+.activity-focus-mode.activity-do-cultist .activity-preview {
+  position: relative;
+  grid-template-rows: minmax(0, 1fr);
+  padding: 8px;
+}
+
+.activity-focus-mode.activity-do-cultist .preview-heading {
+  position: absolute;
+  z-index: 20;
+  top: 18px;
+  right: 18px;
+  min-height: 0;
+  padding: 0;
+}
+
+.activity-focus-mode.activity-do-cultist .preview-heading > div:first-child,
+.activity-focus-mode.activity-do-cultist .preview-heading .ai-badge,
+.activity-focus-mode.activity-do-cultist .activity-guide {
+  display: none;
+}
+
+.activity-focus-mode.activity-do-cultist .preview-tools {
+  display: block;
+}
+
+.activity-focus-mode.activity-do-cultist .focus-toggle {
+  min-width: 178px;
+  border-color: rgba(245, 217, 140, .7);
+  background: rgba(8, 58, 47, .88);
+  backdrop-filter: blur(10px);
+}
+
+.activity-focus-mode.activity-do-cultist .scene-do-cultist.activity-sandbox {
+  padding: 0;
+}
+
+.activity-focus-mode.activity-do-cultist .cultist-atlas-game {
+  width: min(1500px, 100%);
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  padding: 14px 24px;
+  border-radius: 18px;
+}
+
+.activity-focus-mode.activity-do-cultist .cultist-atlas-header {
+  min-height: 66px;
+}
+
+.activity-focus-mode.activity-do-cultist .cultist-atlas-header h3 {
+  font-size: clamp(26px, 2.25vw, 34px);
+}
+
+.activity-focus-mode.activity-do-cultist .cultist-atlas-header p {
+  display: none;
+}
+
+.activity-focus-mode.activity-do-cultist .cultist-atlas-progress {
+  width: min(320px, 25vw);
+  min-width: 250px;
+  padding: 10px 12px;
+  margin-right: 190px;
+}
+
+.activity-focus-mode.activity-do-cultist .cultist-atlas-brief {
+  display: none;
+}
+
+.activity-focus-mode.activity-do-cultist .cultist-atlas-speech {
+  display: none;
+}
+
+.activity-focus-mode.activity-do-cultist .cultist-atlas-card.has-talked i {
+  top: 0;
+}
+
+.activity-focus-mode.activity-do-cultist .cultist-atlas-card i {
+  top: 0;
+  color: #fff7d7;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, .9), 0 0 14px rgba(245, 217, 140, .45);
+}
+
 .cultist-demo {
   width: min(920px, 92%);
   max-height: calc(100% - 10px);
@@ -1170,8 +2513,8 @@ button:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3p
   min-height: 0;
   margin: 0 auto;
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
-  gap: clamp(10px, 1.35vh, 16px);
+  grid-template-rows: auto auto auto minmax(240px, 1fr) auto;
+  gap: clamp(9px, 1.05vh, 14px);
   padding: clamp(16px, 2vw, 26px);
   overflow: hidden;
   border: 1px solid rgba(245, 217, 140, .62);
@@ -1206,9 +2549,9 @@ button:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3p
   margin: 8px 0 8px;
   color: #fff4d6;
   font-family: "Cormorant Garamond", serif;
-  font-size: clamp(34px, 4.1vw, 70px);
-  line-height: .96;
-  letter-spacing: -.03em;
+  font-size: clamp(30px, 3.2vw, 50px);
+  line-height: 1.02;
+  letter-spacing: 0;
 }
 
 .cultist-atlas-header p {
@@ -1248,6 +2591,45 @@ button:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3p
   background: linear-gradient(90deg, rgba(3, 24, 23, .88), rgba(8, 59, 52, .72));
 }
 
+.cultist-atlas-brief {
+  min-height: 48px;
+  display: grid;
+  grid-template-columns: repeat(3, auto) minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid rgba(245, 217, 140, .2);
+  border-radius: 14px;
+  background: rgba(2, 18, 18, .62);
+}
+
+.cultist-atlas-brief span {
+  min-height: 30px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0 12px;
+  color: #8fb8a9;
+  border: 1px solid rgba(143, 242, 213, .22);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.cultist-atlas-brief span.done {
+  color: #123b32;
+  border-color: rgba(99, 229, 191, .7);
+  background: linear-gradient(135deg, var(--mint), #f8dc82);
+}
+
+.cultist-atlas-brief b {
+  justify-self: end;
+  color: #f9edcb;
+  font-size: clamp(13px, 1vw, 16px);
+  line-height: 1.35;
+  text-align: right;
+}
+
 .cultist-atlas-rule span {
   color: #f7edcf;
   font-size: clamp(15px, 1.15vw, 20px);
@@ -1264,51 +2646,72 @@ button:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3p
 }
 
 .cultist-atlas-row {
-  min-height: 0;
+  position: relative;
+  min-height: clamp(330px, 41vh, 500px);
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(12px, 2vw, 26px);
+  gap: clamp(8px, 1.3vw, 22px);
+  padding: 6px clamp(4px, 1vw, 18px) 0;
+  border: 1px solid rgba(245, 217, 140, .18);
+  border-radius: 18px;
+  background:
+    radial-gradient(ellipse at 50% 92%, rgba(99, 229, 191, .18), transparent 42%),
+    linear-gradient(180deg, rgba(2, 24, 23, .28), rgba(2, 14, 14, .08));
 }
 
 .cultist-atlas-card {
   position: relative;
+  isolation: isolate;
   min-height: 0;
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto auto;
+  grid-template-rows: minmax(0, 1fr);
   place-items: center;
-  padding: clamp(10px, 1.25vw, 18px);
-  overflow: hidden;
+  padding: 10px 8px 52px;
+  overflow: visible;
   color: #fff4d6;
-  border: 1px solid rgba(245, 217, 140, .38);
-  border-radius: 22px;
+  border: 1px solid transparent;
+  border-radius: 12px;
   background:
-    radial-gradient(circle at 50% 36%, rgba(99, 229, 191, .14), transparent 38%),
-    linear-gradient(180deg, rgba(6, 46, 40, .9), rgba(2, 18, 18, .9));
-  box-shadow: inset 0 0 0 2px rgba(245, 217, 140, .03);
+    radial-gradient(ellipse at 50% 78%, rgba(99, 229, 191, .18), transparent 36%),
+    linear-gradient(180deg, transparent, rgba(2, 18, 18, .18));
+  box-shadow: none;
   cursor: pointer;
   transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease, filter .2s ease;
 }
 
+.cultist-atlas-card::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  left: 24%;
+  right: 24%;
+  bottom: 50px;
+  height: 42px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(228, 245, 215, .34), rgba(99, 229, 191, .18) 45%, transparent 72%);
+  filter: blur(9px);
+}
+
 .cultist-atlas-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-3px);
   border-color: rgba(99, 229, 191, .7);
-  box-shadow: 0 0 35px rgba(99, 229, 191, .18);
+  box-shadow: 0 0 28px rgba(99, 229, 191, .16);
 }
 
 .cultist-atlas-card.has-talked {
-  border-color: rgba(99, 229, 191, .62);
+  border-color: rgba(99, 229, 191, .32);
 }
 
 .cultist-atlas-card.accused {
   border-color: var(--gold-bright);
-  box-shadow: 0 0 0 2px rgba(245, 217, 140, .22), 0 0 50px rgba(245, 217, 140, .18);
+  box-shadow: 0 0 0 2px rgba(245, 217, 140, .18), 0 0 44px rgba(245, 217, 140, .16);
 }
 
 .cultist-atlas-card.innocent {
   border-color: rgba(241, 154, 117, .75);
   background:
-    radial-gradient(circle at 50% 36%, rgba(241, 154, 117, .2), transparent 36%),
-    linear-gradient(180deg, rgba(80, 35, 32, .92), rgba(2, 18, 18, .92));
+    radial-gradient(ellipse at 50% 78%, rgba(241, 154, 117, .18), transparent 38%),
+    linear-gradient(180deg, transparent, rgba(70, 27, 27, .24));
 }
 
 .cultist-atlas-card.revealed {
@@ -1317,49 +2720,148 @@ button:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3p
 }
 
 .cultist-atlas-card > img:not(.cultist-atlas-hammer) {
-  width: min(86%, 360px);
-  height: clamp(210px, 34vh, 430px);
+  position: relative;
+  z-index: 2;
+  width: min(92%, 430px);
+  height: clamp(310px, 48vh, 540px);
+  max-height: 100%;
   object-fit: contain;
   object-position: center bottom;
   filter: drop-shadow(0 18px 28px rgba(0, 0, 0, .55));
-  transition: transform .28s ease, filter .28s ease;
+  animation: cultistRobeBreathe 2.6s ease-in-out infinite;
+  transition: filter .28s ease;
 }
 
 .cultist-atlas-card:hover > img:not(.cultist-atlas-hammer) {
-  transform: scale(1.04);
+  filter: brightness(1.12) drop-shadow(0 22px 30px rgba(0, 0, 0, .55));
+}
+
+.cultist-atlas-card.has-talked > img:not(.cultist-atlas-hammer) {
+  animation: cultistRobeBreathe 2.6s ease-in-out infinite, cultistTalkPulse .58s ease-out;
+}
+
+.phase-hammerAttack .cultist-atlas-card.accused > img:not(.cultist-atlas-hammer) {
+  animation: cultistSuspectJolt .58s ease-out both;
+}
+
+.phase-correctReveal .cultist-atlas-card.revealed > img:not(.cultist-atlas-hammer) {
+  animation: cultistRevealStand .75s ease-out both;
+}
+
+.phase-cultistFleeing .cultist-atlas-card.revealed > img:not(.cultist-atlas-hammer) {
+  animation: cultistFleeAway .95s ease-in both;
+}
+
+.cultist-atlas-card.innocent > img:not(.cultist-atlas-hammer) {
+  animation: cultistInnocentFlinch .7s ease-out both;
+}
+
+.cultist-atlas-speech {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  top: clamp(0px, .9vh, 10px);
+  max-width: min(86%, 280px);
+  padding: 8px 14px;
+  color: #123b32;
+  border-radius: 999px;
+  background: #fff7dd;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, .24);
+  font-size: clamp(12px, .85vw, 14px);
+  font-weight: 950;
+  line-height: 1.25;
+  transform: translateX(-50%);
+  pointer-events: none;
+  animation: cultistSpeechPop .28s ease-out both;
+}
+
+.cultist-atlas-reaction {
+  position: absolute;
+  z-index: 7;
+  left: 50%;
+  top: 10px;
+  max-width: min(88%, 340px);
+  padding: 9px 16px;
+  color: #123b32;
+  border: 1px solid rgba(245, 217, 140, .7);
+  border-radius: 999px;
+  background: #fff7dd;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, .3), 0 0 20px rgba(245, 217, 140, .16);
+  font-size: clamp(12px, .9vw, 15px);
+  font-weight: 950;
+  line-height: 1.25;
+  transform: translateX(-50%);
+  pointer-events: none;
+  animation: cultistSpeechPop .28s ease-out both;
+}
+
+.cultist-atlas-card.reacting .cultist-atlas-speech {
+  display: none;
+}
+
+.cultist-atlas-card.reacting i {
+  opacity: 0;
 }
 
 .cultist-atlas-card i {
-  width: clamp(38px, 3.2vw, 54px);
-  height: clamp(38px, 3.2vw, 54px);
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  top: 8px;
+  width: clamp(30px, 2.5vw, 42px);
+  height: clamp(30px, 2.5vw, 42px);
   display: grid;
   place-items: center;
-  margin-top: -8px;
-  color: #133a31;
+  margin-top: 0;
+  color: #efffe8;
   font-style: normal;
-  font-size: clamp(17px, 1.4vw, 24px);
+  font-size: clamp(15px, 1.1vw, 20px);
   font-weight: 950;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--gold-bright), var(--mint));
-  box-shadow: 0 10px 26px rgba(0, 0, 0, .32);
+  background: rgba(3, 30, 28, .72);
+  border: 1px solid rgba(245, 217, 140, .65);
+  box-shadow: 0 0 18px rgba(245, 217, 140, .18);
+  transform: translateX(-50%);
+}
+
+.cultist-atlas-card.has-talked i {
+  top: 48px;
 }
 
 .cultist-atlas-card b {
-  min-height: 34px;
-  margin-top: 10px;
-  color: #fff4d6;
-  font-size: clamp(18px, 1.65vw, 30px);
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  bottom: 34px;
+  width: max-content;
+  max-width: min(92%, 330px);
+  padding: 7px 14px;
+  min-height: 0;
+  margin-top: 0;
+  color: #123b32;
+  background: rgba(255, 247, 221, .94);
+  border-radius: 999px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .24);
+  font-size: clamp(14px, 1.05vw, 19px);
   line-height: 1.18;
   text-align: center;
+  transform: translateX(-50%);
 }
 
 .cultist-atlas-card small {
-  margin-top: 8px;
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  bottom: 10px;
+  width: max-content;
+  max-width: min(90%, 260px);
+  margin-top: 0;
   color: #8ff2d5;
-  font-size: clamp(12px, .95vw, 15px);
+  font-size: clamp(10px, .75vw, 12px);
   font-weight: 950;
   letter-spacing: .08em;
   text-transform: uppercase;
+  transform: translateX(-50%);
 }
 
 .cultist-atlas-hammer {
@@ -1434,6 +2936,7 @@ button:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3p
 .activity-lab-page:not(.activity-focus-mode) .cultist-atlas-game {
   padding: 14px;
   gap: 8px;
+  grid-template-rows: auto auto auto minmax(180px, 1fr) auto;
 }
 
 .activity-lab-page:not(.activity-focus-mode) .cultist-atlas-header h3 {
@@ -1454,8 +2957,21 @@ button:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3p
   display: none;
 }
 
+.activity-lab-page:not(.activity-focus-mode) .cultist-atlas-brief {
+  grid-template-columns: 1fr;
+}
+
+.activity-lab-page:not(.activity-focus-mode) .cultist-atlas-brief span {
+  display: none;
+}
+
+.activity-lab-page:not(.activity-focus-mode) .cultist-atlas-brief b {
+  justify-self: start;
+  text-align: left;
+}
+
 .activity-lab-page:not(.activity-focus-mode) .cultist-atlas-card > img:not(.cultist-atlas-hammer) {
-  height: clamp(100px, 17vh, 145px);
+  height: clamp(170px, 24vh, 260px);
 }
 
 .activity-lab-page:not(.activity-focus-mode) .cultist-atlas-card b {
@@ -1469,16 +2985,272 @@ button:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3p
 
 @media (max-height: 760px) {
   .cultist-atlas-header h3 {
-    font-size: clamp(32px, 3.4vw, 52px);
+    font-size: clamp(28px, 3vw, 42px);
   }
 
   .cultist-atlas-card > img:not(.cultist-atlas-hammer) {
-    height: clamp(170px, 30vh, 300px);
+    height: clamp(200px, 31vh, 300px);
   }
 
   .cultist-atlas-feedback {
     min-height: 72px;
   }
+}
+
+.activity-focus-mode.activity-do-cultist .cultist-atlas-card > img:not(.cultist-atlas-hammer) {
+  height: clamp(260px, 43vh, 430px);
+}
+
+@media (max-width: 700px) {
+  .activity-focus-mode.activity-do-cultist .cultist-atlas-game {
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    padding: 12px;
+  }
+
+  .activity-focus-mode.activity-do-cultist .cultist-atlas-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    min-height: 0;
+    padding-right: 180px;
+  }
+
+  .activity-focus-mode.activity-do-cultist .cultist-atlas-header h3 {
+    font-size: clamp(25px, 7vw, 34px);
+    word-break: keep-all;
+  }
+
+  .activity-focus-mode.activity-do-cultist .cultist-atlas-progress {
+    width: 100%;
+    min-width: 0;
+    margin-right: 0;
+  }
+
+  .activity-focus-mode.activity-do-cultist .cultist-atlas-rule {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .activity-focus-mode.activity-do-cultist .cultist-atlas-rule em {
+    white-space: normal;
+    text-align: left;
+  }
+
+  .activity-focus-mode.activity-do-cultist .cultist-atlas-row {
+    min-height: 0;
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+  }
+
+  .activity-focus-mode.activity-do-cultist .cultist-atlas-card {
+    min-height: 320px;
+  }
+
+  .activity-focus-mode.activity-do-cultist .cultist-atlas-card > img:not(.cultist-atlas-hammer) {
+    height: clamp(230px, 34vh, 320px);
+  }
+}
+
+:root {
+  --cursor-default: url("/assets/cursors/magic-default.png") 5 3, auto;
+  --cursor-pointer: url("/assets/cursors/magic-pointer.png") 7 2, pointer;
+  --cursor-open: url("/assets/cursors/magic-open.png") 7 3, grab;
+  --cursor-disabled: url("/assets/cursors/magic-disabled.png") 10 10, not-allowed;
+  --cursor-target: url("/assets/cursors/magic-target.png") 16 16, crosshair;
+}
+
+body,
+.app {
+  cursor: var(--cursor-default);
+}
+
+button:not(:disabled),
+a[href],
+[role="button"],
+.choice:not(:disabled),
+.mission-row:not(:disabled),
+.map-node:not(:disabled),
+.map-region-marker:not(:disabled),
+.course-node:not(:disabled),
+.dialogue-next:not(:disabled),
+.report-preview:not(:disabled),
+.fog-pix-companion:not(:disabled) {
+  cursor: var(--cursor-pointer);
+}
+
+button:disabled,
+[aria-disabled="true"],
+.disabled {
+  cursor: var(--cursor-disabled);
+}
+
+.fog-combat-stage,
+.sling-target,
+.fog-answer-row button:not(:disabled),
+.rhythm-keys button:not(:disabled) {
+  cursor: var(--cursor-target);
+}
+
+.topbar-actions {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  min-width: 0;
+}
+
+.audio-toggle {
+  position: relative;
+  z-index: 12;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 13px;
+  color: #d6e5db;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  white-space: nowrap;
+  border: 1px solid rgba(214, 170, 88, .38);
+  border-radius: 999px;
+  background: rgba(3, 24, 23, .72);
+  box-shadow: inset 0 0 0 1px rgba(255, 244, 205, .06), 0 10px 26px rgba(0, 0, 0, .18);
+  backdrop-filter: blur(14px);
+  transition: transform .16s ease, border-color .2s ease, box-shadow .2s ease, color .2s ease;
+}
+
+.audio-toggle:hover {
+  transform: translateY(-1px);
+  border-color: rgba(245, 217, 140, .72);
+  box-shadow: inset 0 0 0 1px rgba(255, 244, 205, .1), 0 12px 30px rgba(214, 170, 88, .16);
+}
+
+.audio-toggle.is-on {
+  color: #fff2be;
+  border-color: rgba(99, 229, 191, .64);
+}
+
+.audio-toggle-light {
+  width: 9px;
+  height: 9px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #61766f;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, .08);
+}
+
+.audio-toggle.is-on .audio-toggle-light {
+  background: var(--mint);
+  box-shadow: 0 0 0 2px rgba(99, 229, 191, .18), 0 0 14px rgba(99, 229, 191, .7);
+}
+
+.audio-toggle-floating {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 60;
+}
+
+.magic-click-burst {
+  position: fixed;
+  z-index: 9999;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background:
+    radial-gradient(circle, rgba(255, 248, 205, .95) 0 18%, transparent 19%),
+    conic-gradient(from 0deg, rgba(245, 217, 140, 0), rgba(245, 217, 140, .95), rgba(99, 229, 191, .85), rgba(245, 217, 140, 0));
+  filter: drop-shadow(0 0 8px rgba(245, 217, 140, .72));
+  animation: magicClickBurst .64s ease-out forwards;
+}
+
+@keyframes magicClickBurst {
+  0% {
+    opacity: .95;
+    transform: translate(-50%, -50%) scale(.65) rotate(0deg);
+  }
+
+  70% {
+    opacity: .72;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(3.2) rotate(92deg);
+  }
+}
+
+@media (max-width: 700px) {
+  .topbar-actions {
+    gap: 8px;
+  }
+
+  .audio-toggle {
+    min-height: 32px;
+    padding: 0 10px;
+    font-size: 9px;
+    letter-spacing: .04em;
+  }
+
+  .audio-toggle-floating {
+    top: 12px;
+    right: 12px;
+  }
+}
+
+@media (pointer: coarse) {
+  body,
+  .app,
+  button,
+  a[href],
+  [role="button"] {
+    cursor: auto;
+  }
+}
+
+@keyframes cultistRobeBreathe {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-7px) scale(1.015); }
+}
+
+@keyframes cultistTalkPulse {
+  0% { filter: brightness(1) drop-shadow(0 18px 28px rgba(0, 0, 0, .55)); }
+  45% { filter: brightness(1.3) drop-shadow(0 0 24px rgba(99, 229, 191, .45)); }
+  100% { filter: brightness(1) drop-shadow(0 18px 28px rgba(0, 0, 0, .55)); }
+}
+
+@keyframes cultistSpeechPop {
+  from { opacity: 0; transform: translate(-50%, 10px) scale(.92); }
+  to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+}
+
+@keyframes cultistSuspectJolt {
+  0% { transform: translateX(0) rotate(0deg); filter: brightness(1); }
+  24% { transform: translateX(-14px) rotate(-2deg); filter: brightness(1.35); }
+  52% { transform: translateX(12px) rotate(2deg); }
+  78% { transform: translateX(-6px) rotate(-1deg); }
+  100% { transform: translateX(0) rotate(0deg); filter: brightness(1); }
+}
+
+@keyframes cultistRevealStand {
+  0% { opacity: .4; transform: translateY(16px) scale(.9); filter: brightness(.6); }
+  45% { opacity: 1; transform: translateY(-10px) scale(1.08); filter: brightness(1.45); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: brightness(1); }
+}
+
+@keyframes cultistFleeAway {
+  0% { opacity: 1; transform: translateX(0) translateY(0) scale(1); filter: brightness(1.05); }
+  100% { opacity: .35; transform: translateX(58%) translateY(-8%) scale(.86); filter: brightness(.72); }
+}
+
+@keyframes cultistInnocentFlinch {
+  0% { transform: translateY(0) scale(1); }
+  35% { transform: translateY(-10px) scale(1.04) rotate(-1deg); }
+  100% { transform: translateY(0) scale(1); }
 }
 
 @keyframes cultistIdleFloat {
@@ -3688,10 +5460,472 @@ button:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3p
 .activity-focus-mode .rhythm-note span { width: 30px; height: 30px; font-size: 13px; }
 .activity-focus-mode .rhythm-note small { font-size: 10px; }
 
+.activity-focus-mode .activity-sandbox .sandbox-preview-frame {
+  height: calc(100% - 170px);
+  min-height: 300px;
+  display: grid;
+  align-items: center;
+  overflow: hidden;
+}
+
+.activity-focus-mode .expedition-demo,
+.activity-focus-mode .device-demo,
+.activity-focus-mode .battle-demo,
+.activity-focus-mode .workshop-demo,
+.activity-focus-mode .detective-demo,
+.activity-focus-mode .runner-demo,
+.activity-focus-mode .rhythm-demo,
+.activity-focus-mode .slingshot-demo {
+  min-height: 100%;
+  display: grid;
+  align-content: center;
+}
+
+/* Selected DO activity art pass */
+.expedition-demo,
+.device-demo,
+.workshop-demo,
+.detective-demo,
+.roleplay-demo,
+.runner-demo,
+.rhythm-demo,
+.slingshot-demo {
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.do-prop,
+.runner-map-prop,
+.sling-weapon-art,
+.sling-jiho-art {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  object-fit: contain;
+  filter: drop-shadow(0 18px 18px rgba(0, 0, 0, .48));
+}
+
+.do-prop {
+  z-index: 0;
+  opacity: .92;
+}
+
+.expedition-demo .expedition-copy,
+.expedition-demo .artifact-grid,
+.device-demo > :not(.do-prop),
+.workshop-demo > :not(.do-prop),
+.detective-demo > :not(.do-prop),
+.roleplay-demo > :not(.do-prop) {
+  position: relative;
+  z-index: 2;
+}
+
+.cave-torch-left {
+  left: -4%;
+  top: 8%;
+  width: 118px;
+  opacity: .84;
+  animation: torchFlicker .9s ease-in-out infinite alternate;
+}
+
+.cave-chest {
+  right: 0;
+  bottom: -16px;
+  width: clamp(110px, 16vw, 190px);
+}
+
+.cave-glow {
+  right: -8%;
+  bottom: -32%;
+  width: clamp(210px, 28vw, 360px);
+  opacity: .42;
+  mix-blend-mode: screen;
+  animation: fogOrbPulse 1.6s ease-in-out infinite alternate;
+}
+
+.artifact-grid button {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.artifact-grid button > img {
+  position: absolute;
+  z-index: -1;
+  right: -10px;
+  bottom: -18px;
+  width: 96px;
+  opacity: .38;
+  filter: saturate(1.1);
+  transition: transform .2s ease, opacity .2s ease;
+}
+
+.artifact-grid button:hover > img,
+.artifact-grid button.collected > img {
+  opacity: .7;
+  transform: scale(1.12) rotate(-3deg);
+}
+
+.artifact-grid button.trap-artifact > img {
+  opacity: .26;
+  filter: saturate(.75) hue-rotate(32deg);
+}
+
+.rune-door-art {
+  left: 18px;
+  top: 26px;
+  width: clamp(100px, 16vw, 170px);
+  opacity: .76;
+}
+
+.rune-door-light {
+  left: 20px;
+  top: 36px;
+  width: clamp(120px, 18vw, 210px);
+  opacity: .28;
+  mix-blend-mode: screen;
+  animation: fogOrbPulse 1.8s ease-in-out infinite alternate;
+}
+
+.rune-token-row button {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.rune-token-row button img {
+  position: absolute;
+  z-index: -1;
+  inset: -16px;
+  width: calc(100% + 32px);
+  height: calc(100% + 32px);
+  opacity: .28;
+  object-fit: cover;
+}
+
+.sentence-stone-art {
+  width: 160px;
+  max-width: 88%;
+  object-fit: contain;
+  filter: drop-shadow(0 0 28px rgba(245, 217, 140, .34));
+}
+
+.purify-beam-art {
+  position: absolute;
+  inset: -20%;
+  width: 140%;
+  height: 140%;
+  object-fit: contain;
+  opacity: .42;
+  mix-blend-mode: screen;
+  animation: fogOrbPulse .8s ease-in-out infinite alternate;
+}
+
+.fog-target > b {
+  position: absolute;
+  z-index: 2;
+  text-shadow: 0 3px 12px rgba(0, 0, 0, .8);
+}
+
+.workshop-artisan {
+  right: 0;
+  bottom: -28px;
+  width: clamp(120px, 16vw, 200px);
+  opacity: .86;
+}
+
+.workshop-cauldron {
+  left: 10px;
+  bottom: 0;
+  width: clamp(110px, 14vw, 170px);
+}
+
+.workshop-scroll {
+  right: 108px;
+  top: 22px;
+  width: clamp(78px, 10vw, 130px);
+  opacity: .72;
+  transform: rotate(6deg);
+}
+
+.recipe-track,
+.recipe-parts {
+  position: relative;
+  z-index: 2;
+}
+
+.recipe-parts button {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.recipe-parts button img {
+  position: absolute;
+  z-index: -1;
+  inset: -8px;
+  width: calc(100% + 16px);
+  height: calc(100% + 16px);
+  object-fit: cover;
+  opacity: .3;
+}
+
+.detective-miro {
+  left: -12px;
+  bottom: -28px;
+  width: clamp(110px, 15vw, 190px);
+  opacity: .88;
+}
+
+.detective-board {
+  right: -10px;
+  top: 12px;
+  width: clamp(150px, 22vw, 270px);
+  opacity: .32;
+}
+
+.detective-stamp {
+  right: 8%;
+  bottom: 12px;
+  width: 108px;
+  opacity: .84;
+  transform: rotate(-10deg);
+  animation: feedbackPop .3s ease;
+}
+
+.detective-demo .case-file,
+.detective-demo h3,
+.detective-demo .evidence-grid {
+  position: relative;
+  z-index: 2;
+}
+
+.evidence-grid button {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.evidence-grid button::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -10px;
+  background-image: url("/assets/do/detective-case/objects/obj_evidence_card.png");
+  background-size: cover;
+  background-position: center;
+  opacity: .18;
+}
+
+.evidence-grid button.correct::before {
+  background-image: url("/assets/do/detective-case/objects/obj_evidence_card_selected.png");
+  opacity: .38;
+}
+
+.evidence-grid button.wrong::before {
+  background-image: url("/assets/do/detective-case/objects/obj_evidence_card_wrong.png");
+  opacity: .34;
+}
+
+.roleplay-milo {
+  right: 4px;
+  bottom: -28px;
+  width: clamp(110px, 17vw, 190px);
+  opacity: .82;
+}
+
+.route-signpost {
+  left: 0;
+  bottom: 0;
+  width: 120px;
+  opacity: .56;
+}
+
+.route-map {
+  right: 126px;
+  top: 16px;
+  width: 96px;
+  opacity: .56;
+  transform: rotate(-7deg);
+}
+
+.route-light-path {
+  right: 14%;
+  bottom: 8%;
+  width: min(330px, 34vw);
+  opacity: .34;
+  mix-blend-mode: screen;
+  animation: fogOrbPulse 1.5s ease-in-out infinite alternate;
+}
+
+.runner-map-prop {
+  z-index: 2;
+}
+
+.runner-spike {
+  left: 40%;
+  top: 47%;
+  width: 52px;
+}
+
+.runner-fog {
+  left: 56%;
+  top: 22%;
+  width: 74px;
+  opacity: .76;
+  animation: fogFloat 1.4s ease-in-out infinite alternate;
+}
+
+.runner-exit-portal {
+  right: 6%;
+  bottom: 8%;
+  width: 78px;
+  filter: drop-shadow(0 0 24px rgba(99, 229, 191, .46));
+}
+
+.runner-rune i {
+  color: transparent !important;
+  overflow: visible;
+  background: none !important;
+  border: 0;
+  box-shadow: none;
+}
+
+.runner-rune i::before {
+  content: "";
+  width: 42px;
+  height: 42px;
+  display: block;
+  background-image: url("/assets/do/rune-runner/objects/obj_collectible_rune_correct.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  filter: drop-shadow(0 0 18px rgba(245, 217, 140, .44));
+}
+
+.runner-rune.trap i::before {
+  background-image: url("/assets/do/rune-runner/objects/obj_collectible_rune_wrong.png");
+  filter: drop-shadow(0 0 18px rgba(183, 91, 115, .42));
+}
+
+.rhythm-stage::before {
+  content: "";
+  position: absolute;
+  inset: 8%;
+  background-image: url("/assets/do/rhythm-spell/effects/fx_spell_circle_complete.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: .16;
+  mix-blend-mode: screen;
+  animation: uiGlyphRotate 18s linear infinite;
+}
+
+.rhythm-hit-line::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 64px;
+  height: 160px;
+  transform: translate(-50%, -50%);
+  background-image: url("/assets/do/rhythm-spell/ui/ui_rhythm_judgement_line.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: .72;
+}
+
+.rhythm-note {
+  grid-template-columns: 30px 22px 1fr;
+}
+
+.rhythm-note > img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 12px rgba(245, 217, 140, .42));
+}
+
+.sling-weapon-art {
+  z-index: 3;
+  left: 14%;
+  top: 59%;
+  width: clamp(90px, 13vw, 150px);
+}
+
+.sling-jiho-art {
+  z-index: 1;
+  left: 1%;
+  bottom: -20px;
+  width: clamp(120px, 17vw, 210px);
+  opacity: .86;
+}
+
+.sling-target i {
+  color: transparent;
+  overflow: visible;
+  border: 0;
+  background-image: url("/assets/do/slingshot-academy/objects/obj_target_wrong.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color: transparent;
+}
+
+.sling-target.correct-target i {
+  background-image: url("/assets/do/slingshot-academy/objects/obj_target_correct.png");
+}
+
+.sling-orb {
+  background-image: url("/assets/do/slingshot-academy/objects/obj_magic_stone_projectile.png") !important;
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  color: transparent !important;
+}
+
+.sling-orb.shot {
+  background-image: url("/assets/do/slingshot-academy/objects/obj_target_hit.png") !important;
+}
+
+.fog-enemy-art img,
+.fog-creature-shape img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 0 24px rgba(174, 126, 189, .4));
+}
+
+.fog-creature-shape img {
+  position: absolute;
+  inset: -18%;
+  width: 136%;
+  height: 136%;
+}
+
+.fog-creature-shape b {
+  opacity: 0;
+}
+
 .teach-ai-page {
   width: min(1500px, calc(100% - 44px));
   padding-top: 20px;
   padding-bottom: 28px;
+}
+
+.teach-ai-exit-row {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.teach-ai-exit-row .button {
+  min-height: 40px;
+  padding: 9px 14px;
+  font-size: 11px;
 }
 
 .teach-ai-intro {
@@ -5342,6 +7576,73 @@ button:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3p
   .phase-selector { grid-template-columns: 1fr; }.phase-selector small { display: none; }.catalog-list { grid-template-columns: 1fr; }.activity-preview { padding: 12px; }.preview-heading { align-items: flex-start; flex-direction: column; }.ai-badge { display: none; }.activity-sandbox { min-height: 600px; padding: 65px 7px 110px; }.sandbox-preview-frame, .scene-do-battle .sandbox-preview-frame, .scene-do-explore .sandbox-preview-frame, .scene-do-assembly .sandbox-preview-frame, .scene-do-workshop .sandbox-preview-frame, .scene-do-detective .sandbox-preview-frame, .scene-do-roleplay .sandbox-preview-frame, .scene-do-runner .sandbox-preview-frame, .scene-do-rhythm .sandbox-preview-frame, .scene-do-slingshot .sandbox-preview-frame, .scene-do-fog-lab .sandbox-preview-frame { width: calc(100% - 14px); margin: 0; }.scene-character-tag { display: none; }.scene-dialogue-panel { grid-template-columns: 1fr; }.scene-dialogue-panel span { font-size: 13px; }.scene-dialogue-panel small { display: none; }.battle-demo, .mission-demo, .teach-voice-demo, .lab-test-demo, .expedition-demo { grid-template-columns: 1fr; text-align: center; }.fog-target, .mission-npc, .npc-class, .englemon-orb { margin: auto; }.lab-option-grid, .material-parts, .review-checks, .recipe-track, .evidence-grid, .fog-lab-body { grid-template-columns: 1fr; }.fog-city-tabs { grid-template-columns: repeat(3, 1fr); }.lab-mic { min-width: 0; width: 100%; }.adaptive-controls { grid-template-columns: 1fr; }.coordinate-scene i { min-width: 70px; padding: 10px; }.material-page { flex-wrap: wrap; }.chalk-pad canvas { height: 150px; }
 }
 
+.asset-placeholder-note {
+  background: linear-gradient(90deg, rgba(112, 235, 198, .95), rgba(255, 222, 136, .95));
+}
+
+@media (min-width: 1100px) {
+  .activity-lab-page:not(.activity-focus-mode) .activity-preview {
+    min-height: 0;
+  }
+
+  .activity-lab-page:not(.activity-focus-mode) .activity-sandbox {
+    min-height: 0;
+    padding: 58px 24px 86px;
+  }
+
+  .activity-lab-page:not(.activity-focus-mode) .sandbox-preview-frame,
+  .activity-lab-page:not(.activity-focus-mode) .scene-do-battle .sandbox-preview-frame,
+  .activity-lab-page:not(.activity-focus-mode) .scene-do-explore .sandbox-preview-frame,
+  .activity-lab-page:not(.activity-focus-mode) .scene-do-assembly .sandbox-preview-frame,
+  .activity-lab-page:not(.activity-focus-mode) .scene-do-workshop .sandbox-preview-frame,
+  .activity-lab-page:not(.activity-focus-mode) .scene-do-detective .sandbox-preview-frame,
+  .activity-lab-page:not(.activity-focus-mode) .scene-do-roleplay .sandbox-preview-frame,
+  .activity-lab-page:not(.activity-focus-mode) .scene-do-runner .sandbox-preview-frame,
+  .activity-lab-page:not(.activity-focus-mode) .scene-do-rhythm .sandbox-preview-frame,
+  .activity-lab-page:not(.activity-focus-mode) .scene-do-slingshot .sandbox-preview-frame,
+  .activity-lab-page:not(.activity-focus-mode) .scene-do-fog-lab .sandbox-preview-frame {
+    width: min(960px, calc(100% - 112px));
+    min-height: 220px;
+    max-height: 260px;
+    margin: 0;
+  }
+
+  .activity-focus-mode .activity-sandbox {
+    padding: clamp(86px, 8vh, 112px) clamp(34px, 3vw, 56px) clamp(108px, 10vh, 132px);
+  }
+
+  .activity-focus-mode .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-battle .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-explore .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-assembly .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-workshop .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-detective .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-roleplay .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-runner .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-rhythm .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-slingshot .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-fog-lab .sandbox-preview-frame {
+    width: min(1420px, calc(100% - 88px));
+    min-height: min(610px, calc(100% - 18px));
+  }
+
+  .activity-focus-mode .scene-do-runner .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-rhythm .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-slingshot .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-fog-lab .sandbox-preview-frame {
+    width: min(1500px, calc(100% - 68px));
+  }
+
+  .activity-focus-mode .runner-field,
+  .activity-focus-mode .sling-field {
+    height: clamp(360px, 46vh, 560px);
+  }
+
+  .activity-focus-mode .rhythm-stage {
+    height: clamp(310px, 42vh, 500px);
+  }
+}
+
 /* Story Intro */
 .story-intro-page {
   position: relative;
@@ -5921,4 +8222,3509 @@ button:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3p
 .teach-ai-active-page .teach-result-modal .button {
   min-height: 38px;
   padding: 0 18px;
+}
+
+/* Final fitting guard for PC/fullscreen activity previews.
+   Keep the play field large while reserving fixed space for mission HUD and dialogue. */
+@media (min-width: 1051px) {
+  .activity-focus-mode .activity-sandbox {
+    padding: 64px 28px 86px !important;
+  }
+
+  .activity-focus-mode .activity-sandbox .sandbox-preview-frame,
+  .activity-focus-mode .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-battle .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-explore .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-assembly .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-workshop .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-detective .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-roleplay .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-runner .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-rhythm .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-slingshot .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-fog-lab .sandbox-preview-frame {
+    width: min(1440px, calc(100% - 72px)) !important;
+    height: calc(100% - 148px) !important;
+    min-height: 320px !important;
+    max-height: calc(100% - 148px) !important;
+    margin: 0 auto !important;
+    display: grid !important;
+    align-items: center !important;
+    overflow: hidden !important;
+  }
+
+  .activity-focus-mode .scene-do-runner .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-rhythm .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-slingshot .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-fog-lab .sandbox-preview-frame {
+    width: min(1520px, calc(100% - 56px)) !important;
+  }
+
+  .activity-focus-mode .sandbox-world-hud {
+    top: 12px !important;
+  }
+
+  .activity-focus-mode .scene-dialogue-panel {
+    bottom: 10px !important;
+    min-height: 62px;
+  }
+
+  .activity-focus-mode .scene-character-tag {
+    bottom: 76px !important;
+  }
+}
+
+@media (min-width: 1051px) and (max-height: 760px) {
+  .activity-focus-mode .activity-sandbox {
+    padding: 56px 24px 78px !important;
+  }
+
+  .activity-focus-mode .activity-sandbox .sandbox-preview-frame,
+  .activity-focus-mode .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-battle .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-explore .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-assembly .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-workshop .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-detective .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-roleplay .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-runner .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-rhythm .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-slingshot .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-fog-lab .sandbox-preview-frame {
+    height: calc(100% - 136px) !important;
+    min-height: 292px !important;
+    max-height: calc(100% - 136px) !important;
+  }
+
+  .activity-focus-mode .preview-heading,
+  .activity-focus-mode .activity-guide {
+    display: none !important;
+  }
+
+  .activity-focus-mode .activity-stage-tabs {
+    margin-bottom: 8px;
+  }
+}
+
+/* DO activity readability and game-screen layout pass */
+.sandbox-do {
+  display: grid;
+  grid-template-columns: minmax(230px, .34fr) minmax(0, 1fr);
+  gap: 18px;
+  place-items: stretch;
+  align-items: center;
+  padding: 64px 18px 78px;
+}
+
+.sandbox-do .sandbox-preview-frame {
+  grid-column: 2;
+  width: 100% !important;
+  max-width: none;
+  min-height: min(330px, calc(100% - 8px));
+  margin: 0 !important;
+  padding: clamp(18px, 2vw, 30px);
+}
+
+.scene-play-brief {
+  position: relative;
+  z-index: 7;
+  grid-column: 1;
+  align-self: center;
+  width: 100%;
+  max-height: calc(100% - 10px);
+  overflow: hidden;
+  padding: 18px 18px 20px;
+  color: #f8edd0;
+  border: 1px solid rgba(245, 217, 140, .5);
+  border-radius: 20px;
+  background:
+    linear-gradient(145deg, rgba(4, 35, 33, .93), rgba(3, 18, 18, .82)),
+    radial-gradient(circle at 16% 8%, rgba(245, 217, 140, .2), transparent 34%);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .38), inset 0 0 0 1px rgba(255, 255, 255, .05);
+}
+
+.scene-play-brief span {
+  display: inline-flex;
+  min-height: 26px;
+  align-items: center;
+  padding: 0 10px;
+  color: #13372f;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--gold-bright), var(--mint));
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: .12em;
+}
+
+.scene-play-brief b {
+  display: block;
+  margin-top: 14px;
+  color: #fff1cf;
+  font-size: clamp(22px, 1.9vw, 32px);
+  line-height: 1.08;
+}
+
+.scene-play-brief p {
+  margin: 12px 0 0;
+  color: #d4e5dc;
+  font-size: clamp(14px, 1vw, 17px);
+  line-height: 1.55;
+  word-break: keep-all;
+}
+
+.scene-play-brief small {
+  display: block;
+  margin-top: 14px;
+  padding: 12px;
+  color: #102f29;
+  border-left: 4px solid var(--gold);
+  border-radius: 12px;
+  background: linear-gradient(90deg, rgba(245, 217, 140, .94), rgba(174, 242, 213, .9));
+  font-size: clamp(13px, .95vw, 16px);
+  font-weight: 850;
+  line-height: 1.45;
+  word-break: keep-all;
+}
+
+.scene-pix-hint-card {
+  position: absolute;
+  z-index: 7;
+  right: 18px;
+  bottom: 88px;
+  width: min(360px, 32%);
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 13px 16px;
+  color: #e6f8ef;
+  border: 1px solid rgba(99, 229, 191, .55);
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(7, 54, 47, .92), rgba(2, 20, 20, .86));
+  box-shadow: 0 18px 45px rgba(0, 0, 0, .38), 0 0 26px rgba(99, 229, 191, .16);
+  backdrop-filter: blur(8px);
+}
+
+.scene-pix-hint-card i {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  color: #0d332b;
+  font-style: normal;
+  font-size: 14px;
+  font-weight: 950;
+  border-radius: 50%;
+  background: var(--mint);
+}
+
+.scene-pix-hint-card span {
+  font-size: clamp(13px, .95vw, 16px);
+  font-weight: 800;
+  line-height: 1.42;
+  word-break: keep-all;
+}
+
+.sandbox-do .sandbox-preview-frame,
+.sandbox-do .sandbox-preview-frame p,
+.sandbox-do .sandbox-preview-frame label,
+.sandbox-do .sandbox-preview-frame button,
+.sandbox-do .sandbox-preview-frame textarea,
+.sandbox-do .sandbox-preview-frame small {
+  font-size: clamp(15px, 1vw, 18px);
+}
+
+.sandbox-do .demo-stage-label,
+.sandbox-do .arcade-topline span,
+.sandbox-do .arcade-topline small,
+.sandbox-do .case-file b,
+.sandbox-do .fog-setup-heading span {
+  font-size: clamp(12px, .85vw, 15px);
+  letter-spacing: .14em;
+}
+
+.sandbox-do .sandbox-preview-frame h3 {
+  font-size: clamp(30px, 3vw, 48px);
+  line-height: 1.08;
+  word-break: keep-all;
+}
+
+.sandbox-do .lab-option-grid button,
+.sandbox-do .token-row button,
+.sandbox-do .recipe-parts button,
+.sandbox-do .evidence-grid button,
+.sandbox-do .artifact-grid button,
+.sandbox-do .fog-answer-row button {
+  min-height: 58px;
+  padding: 13px 16px;
+  font-size: clamp(15px, 1.05vw, 18px);
+  line-height: 1.28;
+}
+
+.sandbox-do textarea,
+.sandbox-do input {
+  min-height: 70px;
+  padding: 15px 18px;
+  color: #f9eed0;
+  font-size: clamp(16px, 1.1vw, 20px);
+  line-height: 1.45;
+  border-radius: 12px;
+}
+
+.sandbox-do .lab-action,
+.sandbox-do .signal-play,
+.sandbox-do .rhythm-start,
+.sandbox-do .fog-cast-button {
+  min-height: 54px;
+  padding-inline: 22px;
+  font-size: clamp(15px, 1vw, 18px);
+  border-radius: 16px;
+}
+
+.sandbox-do .lab-mic {
+  min-height: 56px;
+}
+
+.sandbox-do .lab-mic span b {
+  font-size: clamp(15px, 1vw, 18px);
+}
+
+.sandbox-do .lab-mic span small {
+  font-size: clamp(12px, .85vw, 15px);
+}
+
+.roleplay-demo {
+  min-height: 100%;
+  display: grid;
+  grid-template-columns: minmax(170px, 28%) minmax(0, 1fr);
+  gap: 16px 22px;
+  align-items: end;
+  padding: clamp(14px, 1.6vw, 24px);
+}
+
+.roleplay-demo .roleplay-milo {
+  position: relative;
+  z-index: 4;
+  grid-row: 1 / span 5;
+  align-self: end;
+  justify-self: center;
+  right: auto;
+  bottom: auto;
+  width: min(260px, 100%);
+  max-height: 96%;
+  opacity: 1;
+  filter: drop-shadow(0 22px 24px rgba(0, 0, 0, .62));
+}
+
+.roleplay-demo .ai-bubble,
+.roleplay-demo .roleplay-goal,
+.roleplay-demo label,
+.roleplay-demo .roleplay-actions {
+  grid-column: 2;
+  position: relative;
+  z-index: 5;
+}
+
+.roleplay-demo .ai-bubble {
+  width: 100%;
+  margin: 0;
+  padding: 18px 20px;
+  border-radius: 20px 20px 20px 6px;
+  background: linear-gradient(135deg, rgba(6, 45, 41, .95), rgba(2, 18, 18, .86));
+}
+
+.roleplay-demo .ai-bubble b {
+  font-size: clamp(14px, .95vw, 17px);
+}
+
+.roleplay-demo .ai-bubble p {
+  margin-top: 8px;
+  font-size: clamp(18px, 1.45vw, 26px);
+  line-height: 1.25;
+}
+
+.roleplay-goal {
+  grid-template-columns: 110px 1fr;
+  gap: 6px 14px;
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(245, 217, 140, .11);
+}
+
+.roleplay-goal span {
+  font-size: 11px;
+}
+
+.roleplay-goal b {
+  font-size: clamp(15px, 1.1vw, 19px);
+}
+
+.roleplay-goal small {
+  font-size: clamp(14px, .95vw, 17px);
+}
+
+.roleplay-demo label {
+  color: #c7ded4;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.roleplay-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  margin-top: 0;
+}
+
+.roleplay-demo .route-map {
+  right: 18px;
+  top: 14px;
+  width: 118px;
+  opacity: .5;
+}
+
+.roleplay-demo .route-signpost {
+  left: 18px;
+  bottom: 10px;
+  width: 132px;
+  opacity: .7;
+}
+
+.roleplay-demo .route-light-path {
+  right: 18%;
+  bottom: 28%;
+  width: min(360px, 42%);
+  opacity: .42;
+}
+
+.cast-do.cast-do-roleplay .cast-main {
+  display: none;
+}
+
+.workshop-artisan,
+.detective-miro {
+  width: clamp(160px, 20vw, 280px);
+}
+
+.workshop-cauldron {
+  width: clamp(140px, 17vw, 230px);
+}
+
+.detective-board {
+  width: clamp(210px, 26vw, 350px);
+  opacity: .42;
+}
+
+.sling-jiho-art {
+  width: clamp(170px, 21vw, 320px);
+}
+
+.sling-weapon-art {
+  width: clamp(120px, 15vw, 210px);
+}
+
+.fog-enemy-art {
+  width: clamp(170px, 18vw, 270px);
+  height: clamp(150px, 16vw, 230px);
+}
+
+.fog-creature-shape {
+  width: clamp(110px, 12vw, 170px);
+  height: clamp(95px, 10vw, 145px);
+}
+
+.runner-field,
+.sling-field {
+  min-height: 260px;
+}
+
+.rhythm-stage {
+  min-height: 300px;
+}
+
+@media (min-width: 1051px) {
+  .activity-focus-mode .sandbox-do {
+    grid-template-columns: minmax(280px, .25fr) minmax(0, 1fr);
+    gap: 20px;
+    padding: 64px 24px 86px !important;
+  }
+
+  .activity-focus-mode .sandbox-do .scene-play-brief {
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    grid-column: 1;
+    align-self: center;
+    width: 100%;
+  }
+
+  .activity-focus-mode .sandbox-do .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-battle .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-explore .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-assembly .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-workshop .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-detective .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-roleplay .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-runner .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-rhythm .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-slingshot .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-fog-lab .sandbox-preview-frame {
+    grid-column: 2;
+    align-self: stretch !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+  }
+
+  .activity-focus-mode .scene-pix-hint-card {
+    right: 28px;
+    bottom: 94px;
+    width: min(420px, 34%);
+  }
+
+  .activity-focus-mode .roleplay-demo .roleplay-milo {
+    width: min(330px, 100%);
+  }
+
+  .activity-focus-mode .runner-field,
+  .activity-focus-mode .sling-field {
+    height: auto;
+    min-height: 390px;
+  }
+
+  .activity-focus-mode .rhythm-stage {
+    height: auto;
+    min-height: 430px;
+  }
+}
+
+@media (min-width: 1051px) and (max-height: 760px) {
+  .activity-focus-mode .sandbox-do {
+    grid-template-columns: minmax(250px, .25fr) minmax(0, 1fr);
+    gap: 16px;
+    padding: 56px 20px 78px !important;
+  }
+
+  .activity-focus-mode .scene-play-brief {
+    padding: 14px;
+  }
+
+  .activity-focus-mode .scene-play-brief b {
+    font-size: 22px;
+  }
+
+  .activity-focus-mode .scene-play-brief p,
+  .activity-focus-mode .scene-play-brief small {
+    font-size: 13px;
+  }
+
+  .activity-focus-mode .scene-pix-hint-card {
+    display: none;
+  }
+
+  .activity-focus-mode .runner-field,
+  .activity-focus-mode .sling-field {
+    min-height: 320px;
+  }
+
+  .activity-focus-mode .rhythm-stage {
+    min-height: 340px;
+  }
+}
+
+@media (max-width: 1050px) {
+  .sandbox-do {
+    grid-template-columns: 1fr;
+  }
+
+  .sandbox-do .scene-play-brief,
+  .sandbox-do .sandbox-preview-frame {
+    grid-column: 1;
+  }
+
+  .scene-pix-hint-card {
+    display: none;
+  }
+
+  .roleplay-demo {
+    grid-template-columns: 1fr;
+  }
+
+  .roleplay-demo .roleplay-milo {
+    display: none;
+  }
+
+  .roleplay-demo .ai-bubble,
+  .roleplay-demo .roleplay-goal,
+  .roleplay-demo label,
+  .roleplay-demo .roleplay-actions {
+    grid-column: 1;
+  }
+}
+
+/* Activity Atlas compact mode: keep the preview playable at 100% PC zoom. */
+.activity-lab-page:not(.activity-focus-mode) .preview-heading {
+  min-height: 92px;
+  align-items: start;
+  padding-bottom: 10px;
+}
+
+.activity-lab-page:not(.activity-focus-mode) .preview-heading h2 {
+  font-size: clamp(27px, 2.2vw, 36px);
+}
+
+.activity-lab-page:not(.activity-focus-mode) .preview-heading p {
+  max-width: 640px;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.activity-lab-page:not(.activity-focus-mode) .preview-route-note {
+  display: none;
+}
+
+.activity-lab-page:not(.activity-focus-mode) .ai-badge {
+  display: none;
+}
+
+.activity-lab-page:not(.activity-focus-mode) .activity-guide {
+  padding: 6px 0;
+}
+
+.activity-lab-page:not(.activity-focus-mode) .activity-guide > div {
+  padding: 7px 8px;
+}
+
+.activity-lab-page:not(.activity-focus-mode) .activity-guide p {
+  max-height: 34px;
+  overflow: hidden;
+}
+
+.activity-lab-page:not(.activity-focus-mode) .activity-sandbox {
+  min-height: 300px;
+}
+
+.activity-lab-page:not(.activity-focus-mode) .sandbox-do {
+  grid-template-columns: minmax(210px, .32fr) minmax(0, 1fr);
+  gap: 14px;
+  padding: 60px 14px 70px;
+}
+
+.activity-lab-page:not(.activity-focus-mode) .scene-play-brief {
+  max-height: 220px;
+  padding: 14px;
+  overflow: hidden;
+}
+
+.activity-lab-page:not(.activity-focus-mode) .scene-play-brief b {
+  margin-top: 10px;
+  font-size: 21px;
+}
+
+.activity-lab-page:not(.activity-focus-mode) .scene-play-brief p {
+  max-height: 54px;
+  margin-top: 8px;
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 1.38;
+}
+
+.activity-lab-page:not(.activity-focus-mode) .scene-play-brief small {
+  max-height: 52px;
+  margin-top: 9px;
+  padding: 9px 10px;
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.activity-lab-page:not(.activity-focus-mode) .sandbox-do .sandbox-preview-frame {
+  min-height: 260px;
+  padding: 18px;
+}
+
+.activity-lab-page:not(.activity-focus-mode) .scene-pix-hint-card {
+  display: none;
+}
+
+@media (min-width: 1051px) {
+  .activity-focus-mode .activity-preview {
+    grid-template-rows: minmax(0, 1fr) !important;
+  }
+
+  .activity-focus-mode .activity-sandbox {
+    grid-row: 1 !important;
+    height: 100% !important;
+  }
+}
+
+/* Final DO game-screen polish: larger readable labels and clearer character staging. */
+.sandbox-do .scene-play-brief span,
+.sandbox-do .demo-stage-label,
+.sandbox-do .arcade-topline small,
+.sandbox-do .arcade-topline span,
+.sandbox-do .runner-rune span,
+.sandbox-do .rhythm-note small,
+.sandbox-do .rhythm-lanes span,
+.sandbox-do .rhythm-meter span,
+.sandbox-do .fog-loadout small,
+.sandbox-do .fog-loadout b,
+.sandbox-do .fog-setup-heading span,
+.sandbox-do .fog-setup-heading small,
+.sandbox-do .fog-selection-grid b,
+.sandbox-do .fog-selection-grid small,
+.sandbox-do .fog-selection-grid p,
+.sandbox-do .boss-disclosure span,
+.sandbox-do .boss-disclosure b,
+.sandbox-do .boss-disclosure small,
+.sandbox-do .boss-mode-panel b,
+.sandbox-do .boss-mode-panel small,
+.sandbox-do .boss-mode-panel p,
+.sandbox-do .fog-specimen-status,
+.sandbox-do .fog-specimen > small,
+.sandbox-do .fog-specimen > span,
+.sandbox-do .fog-specimen p,
+.sandbox-do .fog-player-unit > span,
+.sandbox-do .fog-enemy-unit > span,
+.sandbox-do .fog-player-unit > small,
+.sandbox-do .fog-enemy-unit > small,
+.sandbox-do .fog-pix-companion span,
+.sandbox-do .fog-pix-companion b,
+.sandbox-do .fog-drag-orb span,
+.sandbox-do .fog-command-copy span,
+.sandbox-do .fog-command-copy p,
+.sandbox-do .fog-fighter-card span small,
+.sandbox-do .fog-versus small,
+.sandbox-do .fog-versus span {
+  font-size: max(12px, 1em) !important;
+  line-height: 1.35;
+}
+
+.sandbox-do .sandbox-world-hud small,
+.sandbox-do .scene-signal small,
+.sandbox-do .scene-character-tag small,
+.sandbox-do .scene-dialogue-panel small {
+  font-size: 12px !important;
+}
+
+.sandbox-do .sandbox-world-hud b,
+.sandbox-do .scene-character-tag b,
+.sandbox-do .scene-dialogue-panel span {
+  font-size: max(16px, 1em) !important;
+}
+
+.sandbox-do .fog-selection-grid button,
+.sandbox-do .boss-mode-panel button {
+  min-height: 72px;
+  padding: 10px 12px;
+}
+
+.sandbox-do .fog-creature-shape {
+  width: clamp(138px, 13vw, 190px) !important;
+  height: clamp(120px, 11vw, 165px) !important;
+}
+
+.sandbox-do .fog-specimen {
+  min-height: 245px;
+}
+
+.sandbox-do .roleplay-demo .roleplay-milo {
+  width: clamp(240px, 23vw, 340px) !important;
+  max-height: 100%;
+}
+
+.sandbox-do .roleplay-demo {
+  grid-template-columns: minmax(240px, 32%) minmax(0, 1fr);
+}
+
+.sandbox-do .sling-jiho-art {
+  width: clamp(220px, 23vw, 330px) !important;
+}
+
+.sandbox-do .sling-weapon-art {
+  width: clamp(150px, 15vw, 230px) !important;
+}
+
+.sandbox-do .runner-avatar {
+  transform: translate(-50%, -50%) scale(1.18);
+}
+
+.sandbox-do .runner-rune {
+  transform: translate(-50%, -50%) scale(1.08);
+}
+
+.sandbox-do .rhythm-keys button span {
+  font-size: clamp(13px, .95vw, 16px) !important;
+}
+
+@media (min-width: 1051px) {
+  .activity-focus-mode .scene-do-roleplay .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-runner .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-rhythm .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-slingshot .sandbox-preview-frame,
+  .activity-focus-mode .scene-do-fog-lab .sandbox-preview-frame {
+    padding: 24px 26px;
+  }
+
+  .activity-focus-mode .scene-do-roleplay .roleplay-demo {
+    grid-template-columns: minmax(300px, 34%) minmax(0, 1fr);
+  }
+
+  .activity-focus-mode .scene-do-roleplay .roleplay-milo {
+    width: clamp(300px, 27vw, 390px) !important;
+  }
+
+  .activity-focus-mode .scene-do-runner .runner-field,
+  .activity-focus-mode .scene-do-slingshot .sling-field {
+    height: clamp(360px, 47vh, 520px) !important;
+  }
+
+  .activity-focus-mode .scene-do-rhythm .rhythm-stage {
+    height: clamp(360px, 46vh, 500px) !important;
+  }
+
+  .activity-focus-mode .scene-do-fog-lab .fog-lab-body {
+    grid-template-columns: minmax(260px, .34fr) minmax(0, 1fr) !important;
+    min-height: 330px !important;
+  }
+
+  .activity-focus-mode .scene-do-fog-lab .fog-specimen {
+    min-height: 330px;
+  }
+
+  .activity-focus-mode .scene-do-fog-lab .fog-creature-shape {
+    width: clamp(180px, 18vw, 250px) !important;
+    height: clamp(160px, 15vw, 220px) !important;
+  }
+
+  .activity-focus-mode .scene-do-fog-lab .fog-combat-stage {
+    min-height: clamp(300px, 37vh, 420px) !important;
+  }
+
+  .activity-focus-mode .scene-do-fog-lab .fog-player-art {
+    width: clamp(220px, 20vw, 300px) !important;
+    height: clamp(220px, 20vw, 300px) !important;
+  }
+
+  .activity-focus-mode .scene-do-fog-lab .fog-enemy-art {
+    width: clamp(230px, 21vw, 315px) !important;
+    height: clamp(210px, 19vw, 290px) !important;
+  }
+}
+
+@media (min-width: 1051px) and (max-height: 760px) {
+  .activity-focus-mode .scene-do-roleplay .roleplay-demo {
+    grid-template-columns: minmax(260px, 32%) minmax(0, 1fr);
+  }
+
+  .activity-focus-mode .scene-do-roleplay .roleplay-milo {
+    width: clamp(260px, 23vw, 330px) !important;
+  }
+
+  .activity-focus-mode .scene-do-fog-lab .fog-lab-body {
+    min-height: 285px !important;
+  }
+
+  .activity-focus-mode .scene-do-fog-lab .fog-specimen {
+    min-height: 285px;
+  }
+
+  .activity-focus-mode .scene-do-fog-lab .fog-creature-shape {
+    width: clamp(150px, 15vw, 210px) !important;
+    height: clamp(132px, 13vw, 185px) !important;
+  }
+}
+
+/* Linked DO mission pass: keep each prototype playable and tied to today's route. */
+.focus-toggle.mission-link {
+  border-color: rgba(99, 229, 191, .58);
+  background: linear-gradient(110deg, rgba(34, 132, 103, .42), rgba(9, 36, 32, .88));
+}
+
+.focus-toggle.mission-link i {
+  color: #082b25;
+  background: var(--mint);
+}
+
+.scene-do-explore .activity-cast,
+.scene-do-workshop .activity-cast,
+.scene-do-detective .activity-cast,
+.scene-do-roleplay .activity-cast,
+.scene-do-runner .activity-cast,
+.scene-do-rhythm .activity-cast,
+.scene-do-fog-lab .activity-cast {
+  display: none;
+}
+
+.reward-toast {
+  position: absolute;
+  z-index: 30;
+  right: clamp(14px, 2vw, 26px);
+  bottom: clamp(14px, 2vw, 26px);
+  width: min(310px, calc(100% - 28px));
+  min-height: 82px;
+  display: grid;
+  grid-template-columns: 82px 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px 10px 10px;
+  color: #12362e;
+  border: 1px solid rgba(245, 217, 140, .78);
+  border-radius: 18px;
+  background: linear-gradient(135deg, #ffe6a7, #69e6bf);
+  box-shadow: 0 22px 55px rgba(0, 0, 0, .42), 0 0 26px rgba(99, 229, 191, .32);
+  animation: feedbackPop .34s ease;
+}
+
+.reward-toast img {
+  width: 82px;
+  height: 66px;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 10px rgba(0, 0, 0, .25));
+}
+
+.reward-toast b,
+.reward-toast small {
+  display: block;
+}
+
+.reward-toast b {
+  color: #12362e;
+  font-size: clamp(15px, 1.05vw, 18px);
+  line-height: 1.25;
+}
+
+.reward-toast small {
+  margin-top: 4px;
+  color: #694c16;
+  font-size: clamp(13px, .95vw, 16px);
+  font-weight: 950;
+  letter-spacing: .08em;
+}
+
+.relic-clue {
+  margin-top: 16px;
+  padding: 14px 16px;
+  color: #10362e;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--gold-bright), var(--mint));
+  box-shadow: 0 14px 35px rgba(0, 0, 0, .2);
+}
+
+.relic-clue b,
+.relic-clue span {
+  display: block;
+}
+
+.relic-clue b {
+  color: #5e4517;
+  font-size: 11px;
+  letter-spacing: .14em;
+}
+
+.relic-clue span {
+  margin-top: 4px;
+  font-size: clamp(18px, 1.4vw, 25px);
+  font-weight: 950;
+}
+
+.expedition-demo .artifact-grid button:disabled {
+  cursor: default;
+}
+
+.workshop-demo {
+  min-height: 100%;
+  display: grid;
+  grid-template-columns: minmax(250px, .78fr) minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  gap: 12px 22px;
+  align-items: center;
+  padding: clamp(16px, 1.7vw, 28px);
+}
+
+.workshop-copy,
+.workshop-demo .recipe-track,
+.workshop-demo .recipe-parts,
+.workshop-demo .lab-inline-actions {
+  grid-column: 2;
+}
+
+.workshop-demo .workshop-cauldron {
+  left: clamp(18px, 4vw, 72px);
+  bottom: 12%;
+  width: clamp(250px, 24vw, 390px) !important;
+  opacity: 1;
+  z-index: 2;
+}
+
+.workshop-demo .workshop-artisan {
+  right: 4%;
+  bottom: 2%;
+  width: clamp(130px, 13vw, 210px) !important;
+  opacity: .9;
+}
+
+.workshop-demo .workshop-scroll {
+  left: clamp(26px, 4vw, 70px);
+  right: auto;
+  top: 8%;
+  width: clamp(96px, 10vw, 155px);
+}
+
+.workshop-success-burst {
+  left: clamp(70px, 10vw, 160px);
+  bottom: 24%;
+  width: clamp(220px, 23vw, 360px);
+  opacity: .62;
+  mix-blend-mode: screen;
+  animation: fogOrbPulse .8s ease-in-out infinite alternate;
+}
+
+.workshop-copy h3 {
+  max-width: 760px;
+}
+
+.workshop-demo .recipe-track {
+  min-height: 96px;
+  display: grid;
+  align-content: center;
+}
+
+.workshop-demo .recipe-parts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.ingredient-card {
+  min-height: 86px !important;
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  grid-template-rows: auto auto;
+  gap: 3px 12px;
+  align-items: center;
+  text-align: left;
+}
+
+.ingredient-card > i {
+  grid-row: 1 / -1;
+  width: 44px;
+  height: 44px;
+  border: 2px solid rgba(245, 217, 140, .72);
+  border-radius: 50%;
+  box-shadow: inset 0 0 18px rgba(255, 255, 255, .25), 0 0 18px rgba(99, 229, 191, .22);
+}
+
+.ingredient-card.crystal > i {
+  border-radius: 28% 72% 42% 58%;
+  background: linear-gradient(135deg, #f7e6a8, #74e3cb 48%, #347f72);
+}
+
+.ingredient-card.water > i {
+  border-radius: 55% 55% 60% 12%;
+  transform: rotate(45deg);
+  background: linear-gradient(135deg, #d8fff5, #57c8ed 56%, #276888);
+}
+
+.ingredient-card.herb > i {
+  border-radius: 70% 20% 70% 20%;
+  background: linear-gradient(135deg, #dff8b8, #55c47d 55%, #2f6e45);
+}
+
+.ingredient-card.flame > i {
+  border-radius: 58% 42% 50% 50%;
+  background: radial-gradient(circle at 45% 38%, #fff0b9, #f3a84e 48%, #9a4535 78%);
+}
+
+.ingredient-card b,
+.ingredient-card span {
+  position: relative;
+  z-index: 1;
+}
+
+.ingredient-card b {
+  color: var(--gold-bright);
+  font-size: clamp(13px, .95vw, 16px);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.ingredient-card span {
+  color: #e8f1eb;
+  font-size: clamp(13px, .95vw, 16px);
+}
+
+.detective-demo {
+  min-height: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(210px, 26%);
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 12px 22px;
+  align-items: start;
+  padding: clamp(16px, 1.6vw, 28px);
+}
+
+.detective-demo .demo-stage-label,
+.detective-demo .case-file,
+.detective-demo h3,
+.detective-demo .evidence-grid {
+  grid-column: 1;
+}
+
+.detective-demo h3 {
+  max-width: 900px;
+  font-size: clamp(24px, 2.1vw, 36px) !important;
+  line-height: 1.1;
+}
+
+.detective-demo .case-file {
+  padding: 16px 18px;
+}
+
+.detective-demo .case-file p {
+  font-size: clamp(14px, 1vw, 18px);
+}
+
+.detective-demo .evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.detective-demo .detective-board {
+  right: 18px;
+  top: 18px;
+  width: min(310px, 24%) !important;
+  opacity: .48;
+}
+
+.detective-demo .detective-miro {
+  left: auto;
+  right: clamp(26px, 6vw, 96px);
+  bottom: 18px;
+  width: clamp(150px, 16vw, 240px) !important;
+  opacity: .95;
+}
+
+.detective-demo .detective-stamp {
+  right: clamp(42px, 9vw, 140px);
+  bottom: 34px;
+}
+
+.roleplay-demo {
+  width: min(1060px, 100%) !important;
+}
+
+.roleplay-demo .demo-stage-label {
+  grid-column: 2;
+}
+
+.roleplay-demo .roleplay-actions {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.roleplay-demo .atlas-demo-feedback {
+  grid-column: 2;
+  margin-top: 0;
+}
+
+.roleplay-demo .reward-toast {
+  right: 18px;
+  bottom: 18px;
+}
+
+.scene-do-cultist.activity-sandbox {
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+
+.scene-do-cultist .cultist-atlas-game {
+  width: min(1180px, 100%);
+  max-height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.scene-do-cultist .cultist-atlas-header,
+.scene-do-cultist .cultist-atlas-rule,
+.scene-do-cultist .cultist-atlas-brief,
+.scene-do-cultist .cultist-atlas-feedback {
+  margin: 0;
+}
+
+.scene-do-cultist .cultist-atlas-header h3 {
+  font-size: clamp(24px, 2.1vw, 38px);
+}
+
+.scene-do-cultist .cultist-atlas-row {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.scene-do-cultist .cultist-atlas-card {
+  min-width: 0;
+  min-height: 220px;
+  overflow: hidden;
+}
+
+.scene-do-cultist .cultist-atlas-card > img:not(.cultist-atlas-hammer) {
+  height: min(190px, 48%);
+}
+
+.scene-do-cultist .cultist-atlas-speech {
+  left: 12px;
+  right: 12px;
+  max-width: none;
+}
+
+.scene-do-cultist .reward-toast {
+  right: 22px;
+  bottom: 22px;
+}
+
+.runner-field {
+  overflow: hidden;
+}
+
+.runner-avatar {
+  transition: left .16s ease, top .16s ease, transform .16s ease;
+}
+
+.runner-rune.collected {
+  opacity: .45;
+  filter: saturate(.4);
+}
+
+.runner-rune.collected span {
+  text-decoration: line-through;
+}
+
+.runner-rune.next-target i {
+  border-color: var(--mint);
+  box-shadow: 0 0 28px rgba(99, 229, 191, .55);
+  animation-duration: .62s;
+}
+
+.runner-rune.next-target span {
+  color: #17372f;
+  background: var(--gold-bright);
+}
+
+.rhythm-demo h3 {
+  min-height: 64px;
+  display: grid;
+  place-items: center;
+  margin: 8px 0 12px;
+  padding: 12px 16px;
+  border: 1px solid rgba(245, 217, 140, .28);
+  border-radius: 16px;
+  background: rgba(4, 28, 30, .8);
+  font-size: clamp(22px, 2vw, 34px) !important;
+  line-height: 1.16;
+}
+
+.rhythm-note {
+  width: clamp(86px, 7.5vw, 124px) !important;
+  min-height: 42px !important;
+  grid-template-columns: 32px 26px 1fr !important;
+}
+
+.rhythm-note small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rhythm-keys {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.rhythm-keys button {
+  min-width: 0;
+}
+
+.fog-battle-arena {
+  min-height: 100%;
+  display: grid;
+  grid-template-rows: auto auto minmax(250px, 1fr) auto;
+  gap: 12px;
+}
+
+.fog-battle-arena .fog-combat-stage {
+  min-height: clamp(250px, 32vh, 390px);
+}
+
+.fog-command-panel {
+  position: relative;
+  z-index: 8;
+  display: grid;
+  grid-template-columns: minmax(250px, .7fr) minmax(0, 1fr);
+  gap: 14px;
+}
+
+.fog-command-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(118px, 150px);
+  gap: 10px;
+}
+
+.fog-answer-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 8px;
+}
+
+.fog-answer-row button {
+  min-width: 0;
+}
+
+.fog-result-panel {
+  position: relative;
+}
+
+.fog-result-panel .reward-toast {
+  position: static;
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
+@media (min-width: 1051px) {
+  .activity-focus-mode.activity-do-cultist .activity-preview {
+    grid-template-rows: minmax(0, 1fr) !important;
+  }
+
+  .activity-focus-mode.activity-do-cultist .scene-do-cultist.activity-sandbox {
+    height: 100% !important;
+    padding: 24px !important;
+  }
+
+  .activity-focus-mode.activity-do-cultist .cultist-atlas-game {
+    width: min(1320px, 100%);
+    height: 100%;
+  }
+
+  .activity-focus-mode .workshop-demo {
+    grid-template-columns: minmax(330px, .72fr) minmax(0, 1fr);
+  }
+
+  .activity-focus-mode .workshop-demo .workshop-cauldron {
+    width: clamp(330px, 28vw, 460px) !important;
+  }
+}
+
+@media (max-width: 1050px) {
+  .workshop-demo,
+  .detective-demo {
+    grid-template-columns: 1fr;
+  }
+
+  .workshop-copy,
+  .workshop-demo .recipe-track,
+  .workshop-demo .recipe-parts,
+  .workshop-demo .lab-inline-actions,
+  .detective-demo .demo-stage-label,
+  .detective-demo .case-file,
+  .detective-demo h3,
+  .detective-demo .evidence-grid,
+  .roleplay-demo .demo-stage-label,
+  .roleplay-demo .atlas-demo-feedback {
+    grid-column: 1;
+  }
+
+  .workshop-demo .workshop-cauldron,
+  .workshop-demo .workshop-artisan,
+  .detective-demo .detective-miro,
+  .detective-demo .detective-board {
+    opacity: .22;
+  }
+
+  .detective-demo .evidence-grid,
+  .workshop-demo .recipe-parts,
+  .scene-do-cultist .cultist-atlas-row,
+  .rhythm-keys {
+    grid-template-columns: 1fr;
+  }
+
+  .reward-toast {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    width: 100%;
+    margin-top: 12px;
+  }
+}
+
+/* Focus-mode sizing fix for direct DO demo cards. */
+.sandbox-do > .atlas-demo-card,
+.sandbox-do > .cultist-atlas-game {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: min(1180px, calc(100% - 42px));
+}
+
+.activity-focus-mode .sandbox-do > .atlas-demo-card,
+.activity-focus-mode .sandbox-do > .cultist-atlas-game {
+  width: min(1280px, calc(100% - 56px));
+  max-height: calc(100dvh - 176px);
+  overflow: hidden;
+}
+
+.activity-focus-mode .scene-do-roleplay {
+  padding: 58px 20px 84px !important;
+}
+
+.activity-focus-mode .scene-do-roleplay > .roleplay-demo {
+  grid-template-columns: minmax(220px, 28%) minmax(0, 1fr) !important;
+  gap: 12px 20px;
+  align-items: center;
+  padding: 16px 18px;
+}
+
+.activity-focus-mode .scene-do-roleplay .roleplay-milo {
+  width: clamp(210px, 22vw, 300px) !important;
+  max-height: 430px;
+}
+
+.activity-focus-mode .scene-do-roleplay .ai-bubble {
+  padding: 12px 16px;
+}
+
+.activity-focus-mode .scene-do-roleplay .ai-bubble p {
+  margin-top: 5px;
+  font-size: clamp(17px, 1.25vw, 23px);
+}
+
+.activity-focus-mode .scene-do-roleplay .roleplay-goal {
+  padding: 10px 12px;
+}
+
+.activity-focus-mode .scene-do-roleplay .roleplay-goal small {
+  font-size: clamp(12px, .85vw, 15px);
+}
+
+.activity-focus-mode .scene-do-roleplay label {
+  width: 100%;
+  gap: 6px;
+}
+
+.activity-focus-mode .scene-do-roleplay textarea {
+  min-height: 82px;
+  max-height: 110px;
+  padding: 11px 13px;
+}
+
+.activity-focus-mode .scene-do-roleplay .roleplay-actions {
+  grid-template-columns: auto;
+  justify-content: start;
+}
+
+.activity-focus-mode .workshop-demo {
+  padding-top: 62px;
+  padding-bottom: 18px;
+}
+
+.activity-focus-mode .workshop-copy h3 {
+  font-size: clamp(34px, 3vw, 48px);
+  line-height: 1.04;
+}
+
+.activity-focus-mode .scene-do-workshop .scene-pix-hint-card {
+  display: none;
+}
+
+/* Fullscreen play-first mode: collapse explanation UI until requested. */
+.activity-focus-mode .activity-atlas {
+  border-radius: 0 !important;
+  border-color: rgba(214, 170, 88, .22);
+}
+
+.activity-focus-mode .activity-preview {
+  position: relative;
+  grid-template-rows: minmax(0, 1fr) !important;
+  padding: 8px !important;
+}
+
+.activity-focus-mode .preview-heading {
+  position: absolute;
+  z-index: 220;
+  top: 18px;
+  right: 18px;
+  left: auto;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  pointer-events: auto;
+}
+
+.activity-focus-mode .preview-heading > div:first-child,
+.activity-focus-mode .preview-heading .ai-badge,
+.activity-focus-mode .preview-heading p,
+.activity-focus-mode .preview-route-note {
+  display: none !important;
+}
+
+.activity-focus-mode .preview-tools {
+  position: fixed;
+  z-index: 230;
+  top: 18px;
+  right: 18px;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.activity-focus-mode .focus-toggle {
+  position: relative;
+  z-index: 231;
+  min-width: 0 !important;
+  min-height: 48px;
+  grid-template-columns: 30px auto;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(3, 26, 24, .9);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, .34);
+  backdrop-filter: blur(8px);
+  pointer-events: auto;
+}
+
+.activity-focus-mode .focus-toggle i {
+  width: 30px;
+  height: 30px;
+  font-size: 20px;
+}
+
+.activity-focus-mode .focus-toggle span {
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.activity-focus-mode .focus-toggle small {
+  display: none;
+}
+
+.activity-focus-mode .info-toggle {
+  border-color: rgba(99, 229, 191, .5);
+}
+
+.activity-focus-mode .info-toggle i {
+  color: #092b25;
+  background: var(--mint);
+}
+
+.activity-focus-mode .info-toggle.active {
+  border-color: rgba(245, 217, 140, .86);
+  background: rgba(56, 67, 43, .94);
+}
+
+.activity-focus-mode .activity-guide {
+  display: none !important;
+}
+
+.activity-focus-mode.activity-details-open .activity-guide {
+  position: absolute;
+  z-index: 120;
+  top: 74px;
+  right: 18px;
+  width: min(760px, calc(100% - 36px));
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(245, 217, 140, .35);
+  border-radius: 12px;
+  background: rgba(3, 26, 24, .94);
+  box-shadow: 0 22px 54px rgba(0, 0, 0, .42);
+  backdrop-filter: blur(10px);
+}
+
+.activity-focus-mode.activity-details-open .activity-guide > div {
+  min-height: 86px;
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .035);
+}
+
+.activity-focus-mode.activity-details-open .activity-guide i {
+  width: 30px;
+  height: 30px;
+  font-size: 10px;
+}
+
+.activity-focus-mode.activity-details-open .activity-guide b {
+  font-size: 12px;
+}
+
+.activity-focus-mode.activity-details-open .activity-guide p {
+  margin-top: 4px;
+  color: #b7ccc3;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.activity-focus-mode .activity-sandbox {
+  grid-row: 1 !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  padding: 12px !important;
+}
+
+.activity-focus-mode .sandbox-do {
+  grid-template-columns: 1fr !important;
+  gap: 0 !important;
+  padding: 12px !important;
+}
+
+.activity-focus-mode .scene-play-brief,
+.activity-focus-mode .scene-character-tag,
+.activity-focus-mode .scene-dialogue-panel,
+.activity-focus-mode .scene-pix-hint-card {
+  display: none !important;
+}
+
+.activity-focus-mode .activity-sandbox .sandbox-preview-frame,
+.activity-focus-mode .sandbox-do .sandbox-preview-frame,
+.activity-focus-mode .scene-do-battle .sandbox-preview-frame,
+.activity-focus-mode .scene-do-explore .sandbox-preview-frame,
+.activity-focus-mode .scene-do-assembly .sandbox-preview-frame,
+.activity-focus-mode .scene-do-workshop .sandbox-preview-frame,
+.activity-focus-mode .scene-do-detective .sandbox-preview-frame,
+.activity-focus-mode .scene-do-roleplay .sandbox-preview-frame,
+.activity-focus-mode .scene-do-runner .sandbox-preview-frame,
+.activity-focus-mode .scene-do-rhythm .sandbox-preview-frame,
+.activity-focus-mode .scene-do-slingshot .sandbox-preview-frame,
+.activity-focus-mode .scene-do-fog-lab .sandbox-preview-frame,
+.activity-focus-mode .sandbox-do > .atlas-demo-card,
+.activity-focus-mode .sandbox-do > .cultist-atlas-game {
+  grid-column: 1 !important;
+  width: min(1540px, calc(100% - 24px)) !important;
+  max-width: none !important;
+  max-height: calc(100dvh - 48px) !important;
+  margin: 0 auto !important;
+}
+
+.activity-focus-mode .sandbox-do > .atlas-demo-card,
+.activity-focus-mode .sandbox-do > .cultist-atlas-game {
+  height: auto;
+}
+
+.activity-focus-mode .sandbox-world-hud {
+  top: 14px !important;
+  left: 14px !important;
+  right: 14px !important;
+}
+
+.activity-focus-mode .scene-do-roleplay {
+  padding: 12px !important;
+}
+
+.activity-focus-mode .scene-do-roleplay > .roleplay-demo {
+  width: min(1220px, calc(100% - 24px)) !important;
+}
+
+.activity-focus-mode .scene-do-workshop .workshop-demo {
+  padding-top: 24px;
+}
+
+@media (max-width: 900px) {
+  .activity-focus-mode .preview-heading {
+    top: 10px;
+    right: 10px;
+  }
+
+  .activity-focus-mode .preview-tools {
+    top: 10px;
+    right: 10px;
+    gap: 6px;
+  }
+
+  .activity-focus-mode .focus-toggle {
+    grid-template-columns: 28px;
+    padding: 6px;
+  }
+
+  .activity-focus-mode .focus-toggle span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .activity-focus-mode.activity-details-open .activity-guide {
+    top: 154px;
+    right: 10px;
+    width: calc(100% - 20px);
+    max-height: calc(100dvh - 170px);
+    overflow: auto;
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Fullscreen text-fit pass for compact game controls. */
+.activity-focus-mode .artifact-grid button {
+  min-height: 96px !important;
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+
+.activity-focus-mode .ingredient-card {
+  min-height: 104px !important;
+}
+
+.activity-focus-mode .detective-demo .evidence-grid button {
+  min-height: 74px !important;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.activity-focus-mode .rhythm-stage,
+.activity-focus-mode .rhythm-track {
+  overflow: hidden;
+}
+
+.activity-focus-mode .rhythm-note {
+  width: 96px !important;
+  min-width: 96px;
+  overflow: hidden;
+}
+
+.activity-focus-mode .rhythm-note small {
+  min-width: 54px;
+  max-width: 60px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.activity-focus-mode .artifact-grid button {
+  min-height: 128px !important;
+}
+
+.activity-focus-mode .artifact-grid button > img {
+  right: 8px;
+  bottom: 8px;
+  width: 72px;
+}
+
+.activity-focus-mode .ingredient-card {
+  min-height: 122px !important;
+}
+
+.activity-focus-mode .detective-demo .evidence-grid button {
+  min-height: 92px !important;
+}
+
+.activity-focus-mode .evidence-grid button::before {
+  inset: 0;
+}
+
+.activity-focus-mode .rhythm-keys button.next::before {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .cultist-mission-page {
+    padding: 8px 10px 12px;
+  }
+
+  .cultist-mission-hud {
+    height: 48px;
+    gap: 8px;
+    font-size: 9px;
+  }
+
+  .cultist-arena {
+    height: calc(100% - 48px);
+    border-radius: 14px;
+  }
+
+  .cultist-top-panel {
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    min-height: 66px;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 12px;
+  }
+
+  .cultist-top-panel h1 {
+    font-size: 26px;
+  }
+
+  .cultist-top-panel p {
+    max-width: 330px;
+    font-size: 11px;
+    line-height: 1.35;
+  }
+
+  .cultist-progress {
+    width: 150px;
+  }
+
+  .cultist-progress small {
+    font-size: 9px;
+  }
+
+  .cultist-clue-card {
+    top: 104px;
+    left: 10px;
+    right: 10px;
+    min-height: 0;
+    grid-template-columns: 112px minmax(0, 1fr);
+    gap: 6px 10px;
+    padding: 8px 10px;
+    border-radius: 12px;
+  }
+
+  .cultist-clue-card span {
+    font-size: 8px;
+  }
+
+  .cultist-clue-card b {
+    font-size: 16px;
+  }
+
+  .cultist-clue-card p {
+    max-height: 34px;
+    overflow: hidden;
+    font-size: 10px;
+    line-height: 1.35;
+  }
+
+  .cultist-clue-card small {
+    grid-column: 1 / -1;
+    font-size: 9px;
+    line-height: 1.25;
+    white-space: normal;
+  }
+
+  .cultist-npc-row {
+    z-index: 7;
+    left: 8px;
+    right: 8px;
+    top: 194px;
+    bottom: 96px;
+    gap: 8px;
+  }
+
+  .cultist-npc-card {
+    padding: 7px;
+    border-radius: 14px;
+  }
+
+  .cultist-npc-portrait img:not(.cultist-hammer-hero) {
+    height: clamp(210px, 34vh, 310px);
+  }
+
+  .cultist-npc-info {
+    min-height: 72px;
+    padding: 8px;
+  }
+
+  .cultist-npc-info span {
+    width: 24px;
+    height: 24px;
+    margin-right: 6px;
+    font-size: 10px;
+  }
+
+  .cultist-npc-info b {
+    font-size: 12px;
+  }
+
+  .cultist-npc-info small {
+    font-size: 9px;
+  }
+
+  .cultist-accuse-button {
+    min-height: 36px;
+    margin-top: 6px;
+    font-size: 10px;
+  }
+
+  .cultist-feedback {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    min-height: 76px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    padding: 10px;
+    border-radius: 12px;
+  }
+
+  .cultist-feedback img {
+    display: none;
+  }
+
+  .cultist-feedback p {
+    font-size: 11px;
+    line-height: 1.35;
+  }
+}
+
+@media (max-width: 700px) {
+  .activity-focus-mode.activity-do-cultist .cultist-atlas-game {
+    align-content: stretch;
+    gap: 8px;
+    padding: 10px;
+    overflow: hidden;
+  }
+
+  .activity-focus-mode.activity-do-cultist .cultist-atlas-header,
+  .activity-focus-mode.activity-do-cultist .cultist-atlas-rule,
+  .activity-focus-mode.activity-do-cultist .cultist-atlas-brief {
+    padding: 8px 10px;
+  }
+
+  .activity-focus-mode.activity-do-cultist .cultist-atlas-header h3 {
+    font-size: 24px;
+    line-height: 1.12;
+  }
+
+  .activity-focus-mode.activity-do-cultist .cultist-atlas-row {
+    min-height: 0;
+    height: clamp(250px, 33vh, 315px);
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 6px;
+    padding: 4px;
+  }
+
+  .activity-focus-mode.activity-do-cultist .cultist-atlas-card {
+    height: 100%;
+    min-height: 0;
+    padding: 5px 4px 38px;
+    overflow: hidden;
+  }
+
+  .activity-focus-mode.activity-do-cultist .cultist-atlas-card::before {
+    bottom: 36px;
+    height: 28px;
+  }
+
+  .activity-focus-mode.activity-do-cultist .cultist-atlas-card > img:not(.cultist-atlas-hammer) {
+    width: 100%;
+    height: clamp(150px, 22vh, 220px);
+  }
+
+  .activity-focus-mode.activity-do-cultist .cultist-atlas-card i {
+    top: 6px;
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+  }
+
+  .activity-focus-mode.activity-do-cultist .cultist-atlas-card b {
+    bottom: 18px;
+    max-width: 96%;
+    padding: 4px 5px;
+    font-size: 10px;
+    line-height: 1.18;
+    white-space: normal;
+  }
+
+  .activity-focus-mode.activity-do-cultist .cultist-atlas-card small {
+    bottom: 4px;
+    max-width: 96%;
+    font-size: 7px;
+    letter-spacing: .02em;
+  }
+
+  .activity-focus-mode.activity-do-cultist .cultist-atlas-feedback {
+    min-height: 58px;
+    padding: 7px 9px;
+  }
+
+  .activity-focus-mode.activity-do-cultist .cultist-atlas-feedback img {
+    width: 34px;
+    height: 34px;
+  }
+
+  .activity-focus-mode.activity-do-cultist .cultist-atlas-feedback p {
+    font-size: 10px;
+    line-height: 1.28;
+  }
+
+  .activity-focus-mode .scene-do-fog-lab .boss-disclosure {
+    display: none;
+  }
+
+  .activity-focus-mode .ingredient-card {
+    min-height: 138px !important;
+  }
+
+  .activity-focus-mode .expedition-copy p,
+  .activity-focus-mode .workshop-copy p,
+  .activity-focus-mode .detective-demo h3 {
+    line-height: 1.22;
+  }
+}
+
+/* Learning-mode DO hub now embeds the same Activity Atlas play surfaces. */
+.mission-stage-atlas {
+  min-height: 620px;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  padding: 14px;
+  background:
+    radial-gradient(circle at 50% 24%, rgba(99, 229, 191, .18), transparent 34%),
+    linear-gradient(140deg, rgba(5, 34, 31, .92), rgba(2, 18, 18, .94));
+}
+
+.mission-stage-atlas::before {
+  background: linear-gradient(90deg, rgba(2, 15, 15, .46), rgba(2, 15, 15, .08) 52%, rgba(2, 15, 15, .28));
+  pointer-events: none;
+}
+
+.mission-stage-atlas .mission-stage-top,
+.mission-stage-atlas .mission-stage-play,
+.mission-stage-atlas .mission-stage-action {
+  position: relative;
+  z-index: 2;
+}
+
+.mission-stage-play {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.mission-stage-play .activity-sandbox {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 14px;
+  border-radius: 18px;
+}
+
+.mission-stage-play .sandbox-do > .atlas-demo-card,
+.mission-stage-play .sandbox-do > .cultist-atlas-game {
+  width: min(100%, 1160px);
+  max-height: 100%;
+}
+
+.mission-stage-play .scene-do-cultist .cultist-atlas-game {
+  padding: 12px;
+  gap: 7px;
+  grid-template-rows: auto auto auto minmax(170px, 1fr) auto;
+}
+
+.mission-stage-play .scene-do-cultist .cultist-atlas-header p,
+.mission-stage-play .scene-do-cultist .cultist-atlas-progress {
+  display: none;
+}
+
+.mission-stage-play .scene-do-cultist .cultist-atlas-rule,
+.mission-stage-play .scene-do-cultist .cultist-atlas-brief {
+  min-height: 0;
+  padding: 8px 10px;
+}
+
+.mission-stage-play .scene-do-cultist .cultist-atlas-card > img:not(.cultist-atlas-hammer) {
+  height: clamp(190px, 29vh, 340px);
+}
+
+.mission-stage-action {
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border: 1px solid rgba(99, 229, 191, .3);
+  border-radius: 18px;
+  background: rgba(3, 24, 23, .76);
+}
+
+.mission-stage-action span,
+.mission-stage-action b,
+.mission-stage-action small {
+  display: block;
+}
+
+.mission-stage-action b {
+  color: #fff0c8;
+  font-family: "Cormorant Garamond", serif;
+  font-size: clamp(23px, 2vw, 32px);
+  line-height: 1;
+}
+
+.mission-stage-action small {
+  max-width: 660px;
+  margin-top: 4px;
+  color: #b7cdc3;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.mission-stage-action .button {
+  flex: 0 0 auto;
+  min-width: 136px;
+}
+
+.npc-mission-page {
+  position: relative;
+  z-index: 2;
+  height: calc(100dvh - 76px);
+  min-height: 0;
+  padding: 12px 18px 18px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 34%, rgba(99, 229, 191, .12), transparent 32%),
+    linear-gradient(90deg, rgba(2, 13, 18, .7), rgba(2, 13, 18, .12), rgba(2, 13, 18, .62)),
+    url("/assets/backgrounds/bg-fog-battle-street-night.png") center / cover no-repeat;
+}
+
+.npc-mission-hud {
+  height: 54px;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 14px;
+  color: #c2d5cc;
+  font-size: 12px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.npc-mission-hud b {
+  color: #f7e7ba;
+}
+
+.npc-mission-stage {
+  position: relative;
+  height: calc(100% - 54px);
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(280px, .85fr) minmax(360px, 1.15fr);
+  gap: clamp(14px, 2vw, 28px);
+  padding: clamp(14px, 2vw, 28px);
+  overflow: hidden;
+  border: 1px solid rgba(214, 170, 88, .38);
+  border-radius: 20px;
+  background:
+    linear-gradient(0deg, rgba(1, 12, 14, .82), transparent 50%),
+    linear-gradient(120deg, rgba(3, 30, 28, .86), rgba(4, 45, 39, .52), rgba(3, 19, 20, .9));
+  box-shadow: inset 0 0 90px rgba(0, 0, 0, .42), 0 24px 70px rgba(0, 0, 0, .3);
+}
+
+.npc-mission-visual {
+  position: relative;
+  min-height: 0;
+  display: grid;
+  place-items: end center;
+  overflow: hidden;
+  border: 1px solid rgba(99, 229, 191, .26);
+  border-radius: 18px;
+  background:
+    radial-gradient(ellipse at 50% 80%, rgba(99, 229, 191, .2), transparent 48%),
+    linear-gradient(180deg, rgba(2, 21, 21, .35), rgba(2, 14, 14, .72));
+}
+
+.npc-mission-milo {
+  position: relative;
+  z-index: 4;
+  width: min(72%, 320px);
+  max-height: 78%;
+  object-fit: contain;
+  object-position: bottom center;
+  filter: drop-shadow(0 24px 22px rgba(0, 0, 0, .5));
+}
+
+.npc-mission-sign,
+.npc-mission-map,
+.npc-mission-path {
+  position: absolute;
+  pointer-events: none;
+}
+
+.npc-mission-sign {
+  z-index: 2;
+  right: 7%;
+  bottom: 10%;
+  width: min(32%, 150px);
+  opacity: .84;
+}
+
+.npc-mission-map {
+  z-index: 1;
+  left: 8%;
+  top: 10%;
+  width: min(36%, 180px);
+  opacity: .78;
+  transform: rotate(-8deg);
+}
+
+.npc-mission-path {
+  z-index: 3;
+  left: 18%;
+  top: 30%;
+  width: min(68%, 360px);
+  opacity: .76;
+}
+
+.npc-mission-objective {
+  position: absolute;
+  z-index: 5;
+  left: 14px;
+  right: 14px;
+  top: 14px;
+  padding: 14px;
+  border: 1px solid rgba(214, 170, 88, .36);
+  border-radius: 16px;
+  background: rgba(3, 24, 23, .84);
+  backdrop-filter: blur(8px);
+}
+
+.npc-mission-objective span,
+.npc-mission-objective b,
+.npc-mission-objective small {
+  display: block;
+}
+
+.npc-mission-objective span,
+.npc-mission-speaker span {
+  color: var(--gold-bright);
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.npc-mission-objective b {
+  margin-top: 5px;
+  color: #fff0c7;
+  font-family: "Cormorant Garamond", serif;
+  font-size: clamp(26px, 2.6vw, 38px);
+  line-height: 1;
+}
+
+.npc-mission-objective small {
+  margin-top: 4px;
+  color: #c5d9cf;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.npc-mission-panel {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+  gap: 12px;
+  padding: clamp(16px, 2vw, 24px);
+  overflow: hidden;
+  border: 1px solid rgba(245, 217, 140, .45);
+  border-radius: 18px;
+  background: rgba(2, 20, 20, .86);
+  backdrop-filter: blur(10px);
+}
+
+.npc-mission-speaker {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+
+.npc-mission-speaker img {
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+  border-radius: 50%;
+  background: rgba(99, 229, 191, .16);
+}
+
+.npc-mission-speaker b {
+  display: block;
+  margin-top: 3px;
+  color: #fff0c7;
+  font-size: clamp(18px, 1.6vw, 25px);
+}
+
+.npc-mission-dialogue {
+  padding: 16px 18px;
+  border: 1px solid rgba(99, 229, 191, .34);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(7, 49, 44, .9), rgba(2, 18, 18, .86));
+}
+
+.npc-mission-dialogue span {
+  color: var(--mint);
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.npc-mission-dialogue p {
+  margin: 7px 0 0;
+  color: #fff3d1;
+  font-size: clamp(19px, 1.7vw, 28px);
+  font-weight: 850;
+  line-height: 1.28;
+}
+
+.npc-choice-grid {
+  min-height: 0;
+  display: grid;
+  gap: 10px;
+  align-content: center;
+}
+
+.npc-choice-grid button {
+  min-height: 64px;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  color: #f7edcf;
+  border: 1px solid rgba(245, 217, 140, .32);
+  border-radius: 16px;
+  background: rgba(3, 31, 29, .82);
+  text-align: left;
+  cursor: pointer;
+}
+
+.npc-choice-grid button.correct {
+  color: #113a31;
+  border-color: rgba(99, 229, 191, .9);
+  background: linear-gradient(135deg, #86f0cd, #ffe28c);
+}
+
+.npc-choice-grid button.wrong {
+  border-color: rgba(241, 154, 117, .75);
+  background: rgba(76, 35, 31, .9);
+}
+
+.npc-choice-grid i {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  color: #123b32;
+  border-radius: 50%;
+  background: #ffe28c;
+  font-style: normal;
+  font-weight: 950;
+}
+
+.npc-choice-grid span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: clamp(14px, 1.05vw, 18px);
+  font-weight: 850;
+  line-height: 1.25;
+}
+
+.npc-mission-feedback {
+  min-height: 66px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  color: #cce1d8;
+  border: 1px solid rgba(99, 229, 191, .26);
+  border-radius: 16px;
+  background: rgba(3, 30, 28, .76);
+}
+
+.npc-mission-feedback.success {
+  color: #123b32;
+  border-color: rgba(99, 229, 191, .82);
+  background: linear-gradient(90deg, #ffe28c, #75efc9);
+}
+
+.npc-mission-feedback.error {
+  color: #fff0e3;
+  border-color: rgba(241, 154, 117, .74);
+  background: linear-gradient(90deg, rgba(85, 37, 32, .96), rgba(15, 48, 43, .96));
+}
+
+.npc-mission-feedback img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.npc-mission-feedback p {
+  margin: 0;
+  font-size: clamp(13px, 1vw, 17px);
+  font-weight: 850;
+  line-height: 1.35;
+}
+
+.npc-mission-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.npc-mission-stage .reward-toast {
+  right: 18px;
+  bottom: 18px;
+}
+
+.cultist-mission-page .cultist-atlas-game {
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  gap: clamp(7px, .85vh, 11px);
+  padding: clamp(12px, 1.25vw, 18px);
+  border-radius: 18px;
+}
+
+.cultist-mission-page .cultist-atlas-header h3 {
+  margin: 4px 0 4px;
+  font-size: clamp(30px, 2.5vw, 42px);
+}
+
+.cultist-mission-page .cultist-atlas-header p {
+  max-width: 860px;
+  font-size: clamp(13px, .9vw, 16px);
+  line-height: 1.35;
+}
+
+.cultist-mission-page .cultist-atlas-progress {
+  min-width: 230px;
+  padding: 10px;
+}
+
+.cultist-mission-page .cultist-atlas-rule {
+  min-height: 50px;
+  padding: 10px 14px;
+}
+
+.cultist-mission-page .cultist-atlas-rule span {
+  font-size: clamp(14px, 1vw, 18px);
+}
+
+.cultist-mission-page .cultist-atlas-rule em {
+  font-size: clamp(11px, .85vw, 14px);
+}
+
+.cultist-mission-page .cultist-atlas-brief {
+  min-height: 40px;
+  padding: 8px 10px;
+}
+
+.cultist-mission-page .cultist-atlas-row {
+  min-height: 0;
+  padding: 4px clamp(2px, .6vw, 10px) 0;
+}
+
+.cultist-mission-page .cultist-atlas-card {
+  overflow: hidden;
+}
+
+.cultist-mission-page .cultist-atlas-card > img:not(.cultist-atlas-hammer) {
+  height: clamp(230px, 34vh, 430px);
+}
+
+.cultist-mission-page .cultist-atlas-feedback {
+  position: relative;
+  min-height: 72px;
+  padding: 10px 14px;
+}
+
+.cultist-mission-page .cultist-atlas-feedback p {
+  font-size: clamp(13px, 1vw, 18px);
+  line-height: 1.34;
+}
+
+.cultist-mission-page .reward-toast {
+  right: 12px;
+  bottom: calc(100% + 10px);
+}
+
+@media (max-width: 1050px) {
+  .do-hub-page .mission-board {
+    grid-template-columns: 1fr;
+  }
+
+  .mission-stage-atlas {
+    min-height: 680px;
+  }
+
+  .mission-stage-action {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .do-hub-page .mission-ledger {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .do-hub-page .ledger-title,
+  .do-hub-page .ledger-progress {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 700px) {
+  .mission-stage-atlas {
+    min-height: 640px;
+    padding: 8px;
+  }
+
+  .mission-stage-play .activity-sandbox {
+    padding: 8px;
+  }
+
+  .mission-stage-action b {
+    font-size: 24px;
+  }
+
+  .mission-stage-action small {
+    font-size: 11px;
+  }
+
+  .npc-mission-page {
+    height: auto;
+    min-height: calc(100dvh - 76px);
+    padding: 8px 10px 12px;
+    overflow: auto;
+  }
+
+  .npc-mission-hud {
+    height: auto;
+    min-height: 48px;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    font-size: 9px;
+  }
+
+  .npc-mission-hud .button {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+
+  .npc-mission-stage {
+    height: auto;
+    min-height: calc(100dvh - 140px);
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 10px;
+    overflow: visible;
+    border-radius: 14px;
+  }
+
+  .npc-mission-visual {
+    min-height: 260px;
+  }
+
+  .npc-mission-milo {
+    width: min(48%, 180px);
+    max-height: 210px;
+  }
+
+  .npc-mission-objective {
+    left: 10px;
+    right: 10px;
+    top: 10px;
+    padding: 10px;
+  }
+
+  .npc-mission-objective b {
+    font-size: 24px;
+  }
+
+  .npc-mission-objective small {
+    font-size: 11px;
+  }
+
+  .npc-mission-panel {
+    gap: 9px;
+    padding: 12px;
+    overflow: visible;
+  }
+
+  .npc-mission-dialogue {
+    padding: 12px;
+  }
+
+  .npc-mission-dialogue p {
+    font-size: 18px;
+  }
+
+  .npc-choice-grid {
+    align-content: start;
+  }
+
+  .npc-choice-grid button {
+    min-height: 54px;
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 9px;
+    padding: 9px 10px;
+  }
+
+  .npc-choice-grid i {
+    width: 30px;
+    height: 30px;
+  }
+
+  .npc-choice-grid span,
+  .npc-mission-feedback p {
+    font-size: 12px;
+  }
+
+  .npc-mission-feedback {
+    min-height: 54px;
+    padding: 8px 10px;
+  }
+
+  .npc-mission-feedback img {
+    width: 36px;
+    height: 36px;
+  }
+
+  .npc-mission-stage .reward-toast {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    width: 100%;
+    margin-top: 0;
+  }
+
+  .cultist-mission-page .cultist-mission-hud {
+    grid-template-columns: auto 1fr auto;
+  }
+
+  .cultist-mission-page .cultist-atlas-game {
+    gap: 6px;
+    padding: 8px;
+  }
+
+  .cultist-mission-page .cultist-atlas-header {
+    gap: 8px;
+  }
+
+  .cultist-mission-page .cultist-atlas-header p,
+  .cultist-mission-page .cultist-atlas-progress {
+    display: none;
+  }
+
+  .cultist-mission-page .cultist-atlas-rule {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+
+  .cultist-mission-page .cultist-atlas-rule em {
+    white-space: normal;
+  }
+
+  .cultist-mission-page .cultist-atlas-brief {
+    grid-template-columns: 1fr;
+  }
+
+  .cultist-mission-page .cultist-atlas-brief span {
+    display: none;
+  }
+
+  .cultist-mission-page .cultist-atlas-brief b {
+    justify-self: stretch;
+    font-size: 11px;
+    text-align: left;
+  }
+
+  .cultist-mission-page .cultist-atlas-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .cultist-mission-page .cultist-atlas-card {
+    padding: 4px 4px 38px;
+  }
+
+  .cultist-mission-page .cultist-atlas-card > img:not(.cultist-atlas-hammer) {
+    width: 100%;
+    height: clamp(150px, 23vh, 220px);
+  }
+
+  .cultist-mission-page .cultist-atlas-card b {
+    bottom: 18px;
+    max-width: 96%;
+    padding: 4px 5px;
+    font-size: 10px;
+    white-space: normal;
+  }
+
+  .cultist-mission-page .cultist-atlas-card small {
+    bottom: 4px;
+    font-size: 7px;
+  }
+
+  .cultist-mission-page .cultist-atlas-feedback {
+    min-height: 58px;
+    gap: 8px;
+    padding: 7px 8px;
+  }
+
+  .cultist-mission-page .cultist-atlas-feedback img {
+    width: 34px;
+    height: 34px;
+  }
+
+  .cultist-mission-page .cultist-atlas-feedback p {
+    font-size: 10px;
+  }
+}
+
+/* Final learning-mode DO hub guardrails. */
+.do-hub-page .mission-board {
+  height: auto;
+  align-items: stretch;
+}
+
+.do-hub-page .mission-stage.mission-stage-atlas {
+  width: 100%;
+  min-height: clamp(500px, 60vh, 540px);
+  height: auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+}
+
+.do-hub-page .mission-stage-play {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.do-hub-page .do-preview {
+  height: 100%;
+  min-height: 0;
+  grid-template-columns: minmax(250px, .82fr) minmax(340px, 1.18fr);
+  gap: clamp(14px, 2vw, 26px);
+  padding: clamp(14px, 1.8vw, 24px);
+}
+
+.do-hub-page .do-preview-copy {
+  gap: 10px;
+}
+
+.do-hub-page .do-preview-copy h2 {
+  font-size: clamp(38px, 4vw, 64px);
+}
+
+.do-hub-page .do-preview-copy p {
+  font-size: clamp(13px, .92vw, 15px);
+  line-height: 1.45;
+}
+
+.do-hub-page .do-preview-copy dl {
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.do-hub-page .do-preview-copy dl div {
+  padding: 8px 10px;
+}
+
+.do-hub-page .do-preview-scene {
+  min-height: 0;
+}
+
+.do-hub-page .do-preview-bubble {
+  bottom: 10%;
+  font-size: clamp(15px, 1.3vw, 23px);
+}
+
+.do-hub-page .do-preview-milo {
+  width: min(30%, 210px);
+}
+
+.do-hub-page .mission-stage-action {
+  min-height: 62px;
+  padding: 10px 12px;
+}
+
+.do-hub-page .mission-stage-action .button {
+  flex: 0 0 auto;
+  min-width: 154px;
+}
+
+/* Isolated DO mission introduction surface: no playable UI is rendered here. */
+.do-entry-board {
+  display: grid;
+  grid-template-columns: minmax(0, 1.18fr) minmax(360px, .52fr);
+  gap: 18px;
+  align-items: stretch;
+}
+
+.do-entry-stage {
+  position: relative;
+  min-width: 0;
+  min-height: clamp(520px, 62vh, 620px);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  padding: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(214, 170, 88, .45);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(99, 229, 191, .18), transparent 34%),
+    linear-gradient(140deg, rgba(5, 34, 31, .92), rgba(2, 18, 18, .94));
+  box-shadow: inset 0 0 80px rgba(0, 0, 0, .22);
+}
+
+.do-entry-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(2, 15, 15, .5), rgba(2, 15, 15, .08) 54%, rgba(2, 15, 15, .3));
+  pointer-events: none;
+}
+
+.do-entry-top,
+.do-entry-play,
+.do-entry-action {
+  position: relative;
+  z-index: 2;
+}
+
+.do-entry-top {
+  min-height: 44px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 22px 4px;
+  color: #c9d9d1;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .18em;
+}
+
+.do-entry-top b {
+  color: var(--mint);
+}
+
+.do-entry-play {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.do-entry-action {
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 11px 14px;
+  border: 1px solid rgba(99, 229, 191, .32);
+  border-radius: 18px;
+  background: rgba(3, 24, 23, .78);
+}
+
+.do-entry-action span,
+.do-entry-action b,
+.do-entry-action small {
+  display: block;
+  min-width: 0;
+}
+
+.do-entry-action b {
+  color: var(--parchment);
+  font-family: "Cormorant Garamond", serif;
+  font-size: clamp(28px, 2.2vw, 42px);
+  line-height: 1;
+}
+
+.do-entry-action small {
+  margin-top: 4px;
+  color: #a9c2b8;
+  font-size: 12px;
+}
+
+.do-entry-action .button {
+  flex: 0 0 auto;
+  min-width: 154px;
+  white-space: nowrap;
+}
+
+.do-intro-card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(280px, .86fr) minmax(360px, 1.14fr);
+  gap: clamp(16px, 2.1vw, 28px);
+  padding: clamp(16px, 2vw, 28px);
+  overflow: hidden;
+  border: 1px solid rgba(99, 229, 191, .28);
+  border-radius: 20px;
+  background:
+    linear-gradient(90deg, rgba(3, 25, 24, .92), rgba(3, 25, 24, .7) 45%, rgba(3, 25, 24, .2)),
+    var(--do-intro-bg);
+  background-size: cover;
+  background-position: center;
+}
+
+.do-intro-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 72% 36%, rgba(99, 229, 191, .2), transparent 30%),
+    linear-gradient(0deg, rgba(0, 12, 12, .62), transparent 48%);
+  pointer-events: none;
+}
+
+.do-intro-copy,
+.do-intro-visual {
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+}
+
+.do-intro-copy {
+  display: grid;
+  align-content: center;
+  gap: 12px;
+}
+
+.do-intro-copy > span {
+  width: fit-content;
+  padding: 7px 12px;
+  color: #123b32;
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--gold), var(--mint));
+}
+
+.do-intro-copy h2 {
+  margin: 0;
+  color: var(--parchment);
+  font-family: "Cormorant Garamond", serif;
+  font-size: clamp(36px, 3.8vw, 64px);
+  line-height: .92;
+}
+
+.do-intro-copy p {
+  max-width: 48ch;
+  margin: 0;
+  color: #c5d9cf;
+  font-size: clamp(14px, 1vw, 17px);
+  line-height: 1.5;
+}
+
+.do-intro-copy dl {
+  display: grid;
+  gap: 7px;
+  margin: 2px 0 0;
+}
+
+.do-intro-copy dl div {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid rgba(245, 217, 140, .24);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, .22);
+}
+
+.do-intro-copy dt {
+  color: var(--gold-bright);
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.do-intro-copy dd {
+  margin: 0;
+  color: #fff3d1;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.do-intro-visual {
+  min-height: 0;
+  display: grid;
+  align-items: end;
+  overflow: hidden;
+  border: 1px solid rgba(99, 229, 191, .22);
+  border-radius: 18px;
+  background: radial-gradient(ellipse at 50% 78%, rgba(99, 229, 191, .2), transparent 42%);
+}
+
+.do-intro-character {
+  position: absolute;
+  left: clamp(18px, 5vw, 80px);
+  bottom: 0;
+  z-index: 2;
+  width: min(42%, 280px);
+  max-height: 82%;
+  object-fit: contain;
+  object-position: center bottom;
+  filter: drop-shadow(0 22px 30px rgba(0, 0, 0, .58));
+}
+
+.do-intro-rune .do-intro-character,
+.do-intro-sentence .do-intro-character {
+  left: clamp(22px, 4vw, 58px);
+  bottom: 12%;
+  width: min(34%, 230px);
+}
+
+.do-intro-cultist .do-intro-character {
+  width: min(34%, 230px);
+}
+
+.do-intro-prop {
+  position: absolute;
+  right: clamp(18px, 4vw, 70px);
+  top: clamp(20px, 6vh, 62px);
+  z-index: 1;
+  width: min(34%, 220px);
+  max-height: 45%;
+  object-fit: contain;
+  opacity: .9;
+  filter: drop-shadow(0 18px 24px rgba(0, 0, 0, .42));
+}
+
+.do-intro-brief {
+  position: relative;
+  z-index: 3;
+  align-self: end;
+  justify-self: end;
+  width: min(62%, 520px);
+  margin: 0 clamp(12px, 2vw, 26px) clamp(12px, 2vw, 24px);
+  padding: clamp(13px, 1.4vw, 18px);
+  border: 1px solid rgba(245, 217, 140, .38);
+  border-radius: 16px;
+  background: rgba(2, 22, 22, .78);
+  backdrop-filter: blur(10px);
+}
+
+.do-intro-brief span,
+.do-intro-brief small {
+  display: block;
+  color: var(--gold-bright);
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.do-intro-brief b {
+  display: block;
+  margin-top: 6px;
+  color: #fff2ce;
+  font-size: clamp(17px, 1.35vw, 25px);
+  line-height: 1.15;
+}
+
+.do-intro-brief p {
+  margin: 8px 0 0;
+  color: #c8ddd3;
+  font-size: clamp(12px, .92vw, 15px);
+  line-height: 1.45;
+}
+
+.do-intro-npc .do-intro-character {
+  left: clamp(18px, 3.2vw, 46px);
+  width: min(38%, 250px);
+  max-height: 78%;
+}
+
+.do-intro-cultist .do-intro-brief {
+  width: min(58%, 500px);
+}
+
+.do-intro-brief small {
+  margin-top: 10px;
+  color: var(--mint);
+}
+
+@media (max-width: 1050px) {
+  .do-entry-board {
+    grid-template-columns: 1fr;
+  }
+
+  .do-entry-stage {
+    min-height: 620px;
+  }
+}
+
+@media (max-width: 760px) {
+  .do-entry-stage {
+    min-height: 700px;
+  }
+
+  .do-entry-action {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .do-intro-card {
+    grid-template-columns: 1fr;
+  }
+
+  .do-intro-visual {
+    min-height: 300px;
+  }
+
+.do-intro-brief {
+    width: auto;
+    justify-self: stretch;
+  }
+}
+
+.watch-youtube-embed {
+  width: 100%;
+  height: 100%;
+  min-height: clamp(360px, 52vh, 620px);
+  border: 0;
+  background: #050f10;
+}
+
+/* Mission playfield pass: keep play controls clear and use the new DO assets in the actual learning missions. */
+.reward-toast,
+.npc-mission-stage .reward-toast,
+.cultist-mission-page .reward-toast,
+.roleplay-demo .reward-toast,
+.scene-do-cultist .reward-toast,
+.fog-result-panel .reward-toast {
+  position: fixed !important;
+  z-index: 1200 !important;
+  left: 50% !important;
+  top: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: min(360px, calc(100vw - 40px)) !important;
+  min-height: 96px;
+  transform: translate(-50%, -50%) scale(.92);
+  pointer-events: none;
+  animation: rewardCenterFade 1.75s ease forwards !important;
+}
+
+@keyframes rewardCenterFade {
+  0% { opacity: 0; transform: translate(-50%, -44%) scale(.82); }
+  15% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  72% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -58%) scale(.96); }
+}
+
+.battle-page .battle-hud,
+.npc-mission-hud,
+.cultist-mission-hud,
+.mission-hud {
+  position: relative;
+  z-index: 60;
+}
+
+.battle-page .battle-hud .button,
+.npc-mission-hud .button,
+.cultist-mission-hud .button,
+.mission-hud .button {
+  min-width: 142px;
+  min-height: 44px;
+  color: #fff3d1;
+  border-color: rgba(245, 217, 140, .78);
+  background: rgba(4, 29, 28, .9);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, .34), inset 0 0 0 1px rgba(99, 229, 191, .12);
+}
+
+.battle-page .battle-stage {
+  min-height: calc(100dvh - 56px);
+  overflow: hidden;
+}
+
+.battle-page .battle-fogmon {
+  top: clamp(108px, 14vh, 132px) !important;
+  right: clamp(130px, 14vw, 260px) !important;
+  bottom: auto !important;
+  z-index: 4 !important;
+  height: clamp(190px, 27vh, 300px) !important;
+}
+
+.battle-page .battle-fogmon.is-purified {
+  top: clamp(96px, 12vh, 120px) !important;
+  height: clamp(210px, 28vh, 310px) !important;
+  filter: drop-shadow(0 0 30px rgba(99, 229, 191, .7)) drop-shadow(0 18px 20px rgba(0, 0, 0, .45));
+}
+
+.battle-page .enemy-hud {
+  left: clamp(560px, 36vw, 730px) !important;
+  right: auto !important;
+  top: clamp(72px, 8vh, 110px) !important;
+  width: min(390px, 27vw) !important;
+}
+
+.battle-page .battle-question {
+  right: clamp(28px, 4vw, 78px) !important;
+  bottom: clamp(34px, 4vh, 52px) !important;
+  width: min(600px, 34vw) !important;
+  max-height: min(392px, calc(100% - 320px)) !important;
+  padding: clamp(14px, 1.3vw, 22px) !important;
+  z-index: 8 !important;
+}
+
+.battle-page .battle-question h2 {
+  margin: 8px 0 12px;
+  font-size: clamp(28px, 2.6vw, 46px);
+  line-height: 1.02;
+}
+
+.battle-page .battle-question .choice-list {
+  gap: 8px;
+}
+
+.battle-page .battle-question .choice {
+  min-height: 38px;
+  padding: 7px 13px;
+}
+
+.battle-page .battle-question .button {
+  min-height: 42px;
+}
+
+.battle-purified-art {
+  position: absolute;
+  z-index: 14;
+  left: clamp(640px, 42vw, 820px);
+  top: clamp(38%, 49vh, 54%);
+  display: grid;
+  grid-template-columns: 82px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  width: min(340px, 26vw);
+  padding: 12px 16px;
+  color: #143b32;
+  border: 1px solid rgba(245, 217, 140, .82);
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(255, 232, 159, .96), rgba(108, 238, 194, .96));
+  box-shadow: 0 20px 58px rgba(0, 0, 0, .42), 0 0 36px rgba(99, 229, 191, .45);
+  animation: purifiedCardIn .45s ease both;
+}
+
+.battle-purified-art img {
+  width: 82px;
+  height: 82px;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 12px rgba(0, 0, 0, .26));
+}
+
+.battle-purified-art b,
+.battle-purified-art small {
+  display: block;
+}
+
+.battle-purified-art b {
+  color: #143b32;
+  font-size: clamp(18px, 1.4vw, 24px);
+}
+
+.battle-purified-art small {
+  margin-top: 3px;
+  color: #5e4719;
+  font-size: clamp(11px, .85vw, 14px);
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+@keyframes purifiedCardIn {
+  from { opacity: 0; transform: translateY(18px) scale(.9); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.cultist-mission-page {
+  overflow: hidden;
+}
+
+.cultist-mission-page .cultist-mission-hud {
+  min-height: 62px;
+  padding: 7px clamp(16px, 2vw, 32px);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  border-bottom: 1px solid rgba(245, 217, 140, .32);
+  background: rgba(2, 20, 20, .9);
+}
+
+.cultist-mission-page .cultist-mission-hud span {
+  justify-self: center;
+  color: #d6f3e8;
+  font-weight: 950;
+}
+
+.cultist-mission-page .cultist-arena {
+  height: calc(100dvh - 186px);
+  min-height: 0;
+  border-radius: 0 0 20px 20px;
+}
+
+.cultist-mission-page .cultist-atlas-game {
+  height: 100%;
+  grid-template-rows: auto auto auto auto minmax(0, 1fr) auto !important;
+  gap: clamp(8px, 1vh, 12px) !important;
+  padding: clamp(12px, 1.2vw, 18px) !important;
+}
+
+.cultist-guide-toggle {
+  justify-self: end;
+  min-height: 38px;
+  padding: 0 16px;
+  color: #143b32;
+  border: 1px solid rgba(245, 217, 140, .8);
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--gold-bright), var(--mint));
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.cultist-mission-page .cultist-atlas-rule.is-collapsed,
+.cultist-mission-page .cultist-atlas-brief.is-collapsed {
+  display: none !important;
+}
+
+.cultist-mission-page .cultist-atlas-row {
+  height: 100%;
+  min-height: 0 !important;
+  align-items: stretch;
+  padding: 8px !important;
+}
+
+.cultist-mission-page .cultist-atlas-card {
+  min-height: 0;
+  padding: 8px 10px 68px !important;
+  overflow: hidden !important;
+  background:
+    radial-gradient(ellipse at 50% 88%, rgba(99, 229, 191, .22), transparent 42%),
+    linear-gradient(180deg, rgba(2, 25, 25, .52), rgba(2, 13, 13, .18));
+}
+
+.cultist-mission-page .cultist-atlas-card::after {
+  display: none !important;
+}
+
+.cultist-mission-page .cultist-atlas-card > img:not(.cultist-atlas-hammer) {
+  opacity: 1 !important;
+  display: block !important;
+  width: min(92%, 360px) !important;
+  height: clamp(270px, 46vh, 500px) !important;
+  max-height: calc(100% - 72px) !important;
+  object-fit: contain !important;
+  object-position: center bottom !important;
+}
+
+.cultist-mission-page .cultist-atlas-card b {
+  max-width: min(94%, 390px);
+  white-space: normal;
+}
+
+.cultist-mission-page .cultist-atlas-feedback {
+  min-height: 76px;
+  z-index: 20;
+}
+
+.rune-console .rune-answer button,
+.rune-console .empty-rune,
+.rune-console .rune-blocks button {
+  position: relative;
+  overflow: visible;
+  isolation: auto;
+}
+
+.rune-restoration-visual {
+  position: relative;
+  min-height: clamp(150px, 22vh, 240px);
+  display: grid;
+  place-items: center;
+  margin: 0 auto 14px;
+  overflow: hidden;
+  border: 1px solid rgba(245, 217, 140, .24);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 50% 62%, rgba(99, 229, 191, .18), transparent 36%),
+    linear-gradient(180deg, rgba(2, 21, 22, .58), rgba(1, 13, 14, .82));
+}
+
+.rune-restoration-door {
+  position: relative;
+  z-index: 2;
+  width: min(280px, 26vw);
+  max-height: clamp(130px, 20vh, 220px);
+  object-fit: contain;
+  filter: drop-shadow(0 18px 24px rgba(0, 0, 0, .48));
+  transition: transform .25s ease, filter .25s ease;
+}
+
+.rune-restoration-visual.is-restored .rune-restoration-door {
+  transform: scale(1.04);
+  filter: drop-shadow(0 0 30px rgba(99, 229, 191, .58)) drop-shadow(0 18px 24px rgba(0, 0, 0, .42));
+}
+
+.rune-restoration-light,
+.rune-restoration-snap {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: .76;
+  pointer-events: none;
+  animation: runeRestoreGlow 1.25s ease-in-out infinite alternate;
+}
+
+.rune-restoration-snap {
+  z-index: 3;
+  opacity: .82;
+  mix-blend-mode: screen;
+}
+
+.rune-restoration-visual span {
+  position: absolute;
+  right: 16px;
+  bottom: 12px;
+  z-index: 4;
+  color: var(--gold-bright);
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: .14em;
+}
+
+@keyframes runeRestoreGlow {
+  to { opacity: 1; transform: scale(1.035); }
+}
+
+.cultist-mission-page .cultist-atlas-game {
+  grid-template-columns: minmax(0, 1fr) clamp(310px, 22vw, 390px);
+  grid-template-rows: auto auto auto auto minmax(0, 1fr) !important;
+}
+
+.cultist-mission-page .cultist-atlas-header,
+.cultist-mission-page .cultist-atlas-rule,
+.cultist-mission-page .cultist-atlas-brief {
+  grid-column: 1 / -1;
+}
+
+.cultist-mission-page .cultist-guide-toggle {
+  grid-column: 2;
+  justify-self: end;
+}
+
+.cultist-mission-page .cultist-atlas-row {
+  grid-column: 1;
+  grid-row: 5;
+  height: 100%;
+}
+
+.cultist-mission-page .cultist-atlas-feedback {
+  grid-column: 2;
+  grid-row: 5;
+  align-self: stretch;
+  min-height: 0;
+  height: 100%;
+  grid-template-columns: 1fr;
+  align-content: start;
+  justify-items: start;
+  gap: 14px;
+  padding: 18px;
+}
+
+.cultist-mission-page .cultist-atlas-feedback img {
+  width: 58px;
+  height: 58px;
+}
+
+.cultist-mission-page .cultist-atlas-feedback p {
+  font-size: clamp(15px, 1.05vw, 19px);
+  text-align: left;
+}
+
+.cultist-mission-page .cultist-atlas-card > img:not(.cultist-atlas-hammer) {
+  width: min(98%, 440px) !important;
+  height: clamp(330px, 54vh, 560px) !important;
+  max-height: calc(100% - 76px) !important;
+}
+
+@media (max-width: 1100px) {
+  .battle-page .battle-question {
+    width: min(620px, 48vw) !important;
+  }
+
+  .battle-page .battle-fogmon {
+    right: clamp(70px, 11vw, 170px) !important;
+  }
+
+  .battle-purified-art {
+    left: 42%;
+    width: min(320px, 36vw);
+  }
+}
+
+@media (max-width: 760px) {
+  .battle-page .battle-stage {
+    min-height: 760px;
+  }
+
+  .battle-page .battle-question {
+    left: 14px !important;
+    right: 14px !important;
+    width: auto !important;
+    max-height: none !important;
+  }
+
+  .battle-page .battle-fogmon {
+    top: 170px !important;
+    right: 28px !important;
+    height: 128px !important;
+  }
+
+  .battle-purified-art {
+    left: 16px;
+    top: 280px;
+    width: min(320px, calc(100vw - 32px));
+  }
+
+  .cultist-mission-page {
+    overflow: auto;
+  }
+
+  .cultist-mission-page .cultist-arena {
+    height: auto;
+    min-height: calc(100dvh - 132px);
+  }
+
+  .cultist-mission-page .cultist-atlas-row {
+    grid-column: 1 / -1;
+    grid-template-columns: 1fr;
+  }
+
+  .cultist-mission-page .cultist-atlas-feedback {
+    grid-column: 1 / -1;
+    grid-row: auto;
+    height: auto;
+  }
+
+  .cultist-mission-page .cultist-atlas-card {
+    min-height: 360px;
+  }
 }

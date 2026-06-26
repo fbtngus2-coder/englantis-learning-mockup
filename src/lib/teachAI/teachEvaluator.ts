@@ -53,7 +53,28 @@ function isValidExplanation(normalized: string) {
     || normalized.includes("basic form")
     || normalized.includes("after lets")
     || normalized.includes("lets")
+    || normalized.includes("between")
+    || normalized.includes("near")
+    || normalized.includes("surface")
+    || normalized.includes("touch")
+    || normalized.includes("two places")
+    || normalized.includes("사이")
+    || normalized.includes("근처")
+    || normalized.includes("표면")
+    || normalized.includes("위에")
   );
+}
+
+function includesWord(normalized: string, word: string) {
+  return new RegExp(`(^|\\s)${word}(\\s|$)`).test(normalized);
+}
+
+function isPrepositionSentence(normalized: string) {
+  const hasBetween = includesWord(normalized, "between") && normalized.includes(" and ");
+  const hasNear = includesWord(normalized, "near");
+  const hasOn = includesWord(normalized, "on");
+
+  return hasBetween || hasNear || hasOn;
 }
 
 function isNpcRetryCorrection(config: LevelInputConfig, normalized: string) {
@@ -70,29 +91,40 @@ function isNpcRetryCorrection(config: LevelInputConfig, normalized: string) {
   );
 }
 
+function isPrepositionRetryCorrection(normalized: string) {
+  const fixesOn =
+    normalized.includes("magazine is on the box")
+    || normalized.includes("it should be on the box")
+    || (includesWord(normalized, "on") && (normalized.includes("surface") || normalized.includes("touch") || normalized.includes("표면") || normalized.includes("위")));
+
+  const fixesBetween =
+    normalized.includes("standing between a bank and a hospital")
+    || (includesWord(normalized, "between") && normalized.includes(" and "));
+
+  return fixesOn || fixesBetween;
+}
+
 function evaluateByStep(step: TeachMissionStep, config: LevelInputConfig, normalized: string) {
   const keywordMatch = hasRequiredKeywords(normalized, config.requiredKeywords);
+  const exactOrAccepted = isExactAcceptableAnswer(config, normalized) || includesAcceptableSentence(config, normalized) || keywordMatch;
 
   if (config.inputType === "choice" || config.inputType === "ox") {
     return isChoiceCorrect(config, normalized);
   }
 
   if (step.type === "explain_rule") {
-    return isExactAcceptableAnswer(config, normalized)
-      || includesAcceptableSentence(config, normalized)
-      || keywordMatch
-      || isValidExplanation(normalized);
+    return exactOrAccepted || isValidExplanation(normalized);
   }
 
   if (step.type === "make_example") {
-    return isLetsSentence(normalized) && (keywordMatch || includesAcceptableSentence(config, normalized));
+    return exactOrAccepted || isLetsSentence(normalized) || isPrepositionSentence(normalized);
   }
 
   if (step.type === "npc_retry") {
-    return isNpcRetryCorrection(config, normalized);
+    return exactOrAccepted || isNpcRetryCorrection(config, normalized) || isPrepositionRetryCorrection(normalized);
   }
 
-  return isExactAcceptableAnswer(config, normalized) || includesAcceptableSentence(config, normalized) || keywordMatch;
+  return exactOrAccepted;
 }
 
 export function evaluateTeachStep(

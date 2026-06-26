@@ -1,17 +1,24 @@
 import type { RhythmKey } from "../types/activity";
 
-export const rhythmBeatMs = 640;
-export const rhythmLeadMs = 1850;
+export const rhythmBeatMs = 980;
+export const rhythmLeadMs = 2600;
 
-export const rhythmNotes: { key: RhythmKey; label: string; beat: number }[] = [
-  { key: "A", label: "The", beat: 0 },
-  { key: "S", label: "CRYS-tal", beat: 1 },
-  { key: "D", label: "GLOWED", beat: 2 },
-  { key: "S", label: "all", beat: 3.15 },
-  { key: "F", label: "NIGHT", beat: 4.15 },
-  { key: "D", label: "glowed", beat: 5.2 },
-  { key: "A", label: "again", beat: 6.05 },
-  { key: "F", label: "CAST", beat: 7.1 },
+export const rhythmNotes: {
+  key: RhythmKey;
+  label: string;
+  beat: number;
+  pairId: number;
+  correct: boolean;
+  prompt: string;
+}[] = [
+  { key: "A", label: "near", beat: 0, pairId: 0, correct: false, prompt: "bank와 hospital 사이에 있으면?" },
+  { key: "S", label: "between", beat: 0, pairId: 0, correct: true, prompt: "bank와 hospital 사이에 있으면?" },
+  { key: "D", label: "on", beat: 2.2, pairId: 1, correct: false, prompt: "park가 apartment 근처에 있으면?" },
+  { key: "F", label: "near", beat: 2.2, pairId: 1, correct: true, prompt: "park가 apartment 근처에 있으면?" },
+  { key: "A", label: "between", beat: 4.4, pairId: 2, correct: false, prompt: "book이 desk 위에 닿아 있으면?" },
+  { key: "S", label: "on", beat: 4.4, pairId: 2, correct: true, prompt: "book이 desk 위에 닿아 있으면?" },
+  { key: "D", label: "near", beat: 6.6, pairId: 3, correct: false, prompt: "gate가 bank와 hospital 사이에 있으면?" },
+  { key: "F", label: "between", beat: 6.6, pairId: 3, correct: true, prompt: "gate가 bank와 hospital 사이에 있으면?" },
 ];
 
 export const rhythmLaneTop: Record<RhythmKey, number> = {

@@ -18,5 +18,6 @@ export const sceneAssets = {
     jiho: "/assets/characters/jiho/jiho-casting.png",
     milo: "/assets/story-intro/characters/milo-think.png",
     fogmon: "/assets/characters/fogmon/fogmon-idle.png",
+    fogmonPurified: "/assets/characters/fogmon/fogmon-purified.png",
   },
 };

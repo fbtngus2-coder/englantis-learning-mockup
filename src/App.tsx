@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import { scoringRule, weeklyScores, monthlyScores } from "./data/assessmentData";
 import { activityGuides, activityLibrary, activityPhaseCopy, todayActivityLinks } from "./data/activityAtlas";
 import { courseNodes, sessionIcons } from "./data/courseMap";
 import { cultistGrammarCases } from "./data/cultistGrammarQuestions";
+import { doActivityAssets, doActivityBackgroundByItem } from "./data/doActivityAssets";
 import { doHubMissions } from "./data/doMissions";
 import {
   fogBossDescriptions,
@@ -31,6 +33,7 @@ import { student } from "./data/studentProfile";
 import { defaultTeachLesson } from "./data/teachLessons";
 import { letsTeachMissionSteps } from "./data/teachMissions";
 import { watchScenes } from "./data/watchScenes";
+import type { WatchLecture } from "./data/watchScenes";
 import {
   buildTeachResult,
   getCurrentTeachStep,
@@ -38,6 +41,10 @@ import {
   startTeachSession,
   submitTeachAnswer,
 } from "./lib/teachAI/mockTeachEngine";
+import { sendTeachAiMessage } from "./lib/teachAI/teachApiClient";
+import { sendWatchPixQuestion } from "./lib/watchAI/watchPixClient";
+import type { WatchPixResponse } from "./lib/watchAI/watchTypes";
+import { useGameAudio } from "./lib/useGameAudio";
 import type {
   ScaffoldLevel,
   TeachEvaluation,
@@ -49,7 +56,7 @@ import { StoryIntro } from "./components/story-intro/StoryIntro";
 import type { ActivityItem, ActivityPhase, RhythmJudgement, RhythmKey } from "./types/activity";
 import type { CultistNpc } from "./data/cultistGrammarQuestions";
 import type { FogBattleState, FogSetupStep } from "./types/fog";
-import type { Screen } from "./types/navigation";
+import type { DoMission, Screen } from "./types/navigation";
 
 function Button({
   children,
@@ -83,6 +90,28 @@ function Panel({
       {eyebrow && <div className="panel-eyebrow">{eyebrow}</div>}
       {children}
     </section>
+  );
+}
+
+function RewardToast({
+  show,
+  label = "+200 LINGO",
+  message = "잘했어요! 오늘 표현을 정확히 사용했어요.",
+}: {
+  show: boolean;
+  label?: string;
+  message?: string;
+}) {
+  if (!show) return null;
+
+  return (
+    <div className="reward-toast" role="status" aria-live="polite">
+      <img src={doActivityAssets.exploration.treasureOpen} alt="" aria-hidden="true" onError={(event) => { event.currentTarget.hidden = true; }} />
+      <span>
+        <b>{message}</b>
+        <small>{label}</small>
+      </span>
+    </div>
   );
 }
 
@@ -144,16 +173,134 @@ function activityCastFor(item: ActivityItem, phase: ActivityPhase) {
 
   const enemyIds = new Set(["do-battle", "do-fog-lab", "do-slingshot"]);
   const guideIds = new Set(["do-workshop", "do-detective", "do-slingshot", "do-fog-lab"]);
+  const doCastOverrides: Record<string, Partial<{ main: string; ally: string; enemy: string; mainAlt: string }>> = {
+    "do-workshop": { main: doActivityAssets.workshop.artisanIdle, mainAlt: "Artisan Tain at the magic workshop" },
+    "do-detective": { main: doActivityAssets.detective.miroPoint, mainAlt: "Archivist Miro pointing at evidence" },
+    "do-roleplay": { main: doActivityAssets.npcMissionTalk.miloConfused, mainAlt: "Milo asking for directions" },
+    "do-slingshot": { main: doActivityAssets.slingshot.jihoAim, enemy: doActivityAssets.slingshot.targetCorrect, mainAlt: "Jiho aiming a magic slingshot" },
+    "do-fog-lab": { enemy: doActivityAssets.fogLab.boss },
+  };
+  const castOverride = doCastOverrides[item.id] ?? {};
 
   return {
     ...base,
-    main: guideIds.has(item.id) ? sceneAssets.characters.lexipraise : item.id === "do-roleplay" ? sceneAssets.characters.gram : sceneAssets.characters.jiho,
-    ally: item.id === "do-explore" || item.id === "do-runner" ? sceneAssets.characters.pixhappy : sceneAssets.characters.pix,
-    enemy: enemyIds.has(item.id) ? sceneAssets.characters.fogmon : "",
+    main: castOverride.main ?? (guideIds.has(item.id) ? sceneAssets.characters.lexipraise : item.id === "do-roleplay" ? sceneAssets.characters.gram : sceneAssets.characters.jiho),
+    ally: castOverride.ally ?? (item.id === "do-explore" || item.id === "do-runner" ? sceneAssets.characters.pixhappy : sceneAssets.characters.pix),
+    enemy: castOverride.enemy ?? (enemyIds.has(item.id) ? sceneAssets.characters.fogmon : ""),
     className: `cast-do cast-${item.id}`,
-    mainAlt: guideIds.has(item.id) ? "Dr. Lexi guiding the mission" : item.id === "do-roleplay" ? "Master Gram roleplaying" : "Jinho in the mission",
+    mainAlt: castOverride.mainAlt ?? (guideIds.has(item.id) ? "Dr. Lexi guiding the mission" : item.id === "do-roleplay" ? "Master Gram roleplaying" : "Jinho in the mission"),
   };
 }
+
+const doMissionBriefs: Record<string, { title: string; mission: string; control: string; pix: string }> = {
+  "do-battle": {
+    title: "안개 문장을 정화하기",
+    mission: "빈칸이 있는 문장을 보고 가장 자연스러운 영어 단서를 골라 안개를 걷어냅니다.",
+    control: "선택지를 클릭하면 바로 판정됩니다. 맞으면 문장석이 정화되고, 틀리면 PIX가 다시 볼 단서를 알려줍니다.",
+    pix: "빈칸 앞뒤 관계를 먼저 보세요. 두 장소 사이를 말하면 between이 강한 단서예요.",
+  },
+  "do-assembly": {
+    title: "룬을 순서대로 조립하기",
+    mission: "흩어진 단어 룬을 올바른 문장 순서로 끼워 문장 장치를 다시 켭니다.",
+    control: "단어 타일을 차례대로 누른 뒤 장치를 작동시켜 확인합니다.",
+    pix: "주어, 동사, 위치 표현 순서로 보면 문장 길이 길어져도 덜 헷갈려요.",
+  },
+  "do-roleplay": {
+    title: "Milo에게 길 알려주기",
+    mission: "길을 잃은 Milo의 질문을 듣고 오늘 배운 위치 표현으로 목적지를 설명합니다.",
+    control: "직접 타이핑하거나 음성 버튼을 눌러 답합니다. 장소 관계를 넣을수록 설득력이 올라갑니다.",
+    pix: "near만 쓰면 가까움, between을 쓰면 두 장소 사이 관계까지 알려줄 수 있어요.",
+  },
+  "do-cultist": {
+    title: "수상한 신도 찾기",
+    mission: "세 NPC의 문장을 듣고 위치 전치사 신호가 깨진 후보를 찾아냅니다.",
+    control: "후보를 눌러 문장을 확인하고, 모두 들은 뒤 의심되는 NPC를 지목합니다.",
+    pix: "모양이 아니라 between, near, on이 장소 단서와 맞는지 비교해야 진짜 후보를 찾을 수 있어요.",
+  },
+  "do-fog-lab": {
+    title: "안개몬 배틀 실험",
+    mission: "도시, 안개몬, 배틀 방식을 고른 뒤 영어 문제로 반전 LV를 낮춥니다.",
+    control: "정답 룬을 고르고 정화 구슬을 적에게 보내거나 공격 버튼을 누릅니다.",
+    pix: "배틀은 선택 화면과 전투 화면이 나뉘어요. 먼저 조합을 고른 뒤 출전하세요.",
+  },
+  "do-explore": {
+    title: "동굴 보물 탐험",
+    mission: "힌트를 읽고 맞는 단어 유물을 모아 동굴 안쪽 보물문을 엽니다.",
+    control: "유물 카드를 클릭해 수집합니다. 함정 단어를 누르면 PIX가 다시 힌트를 줍니다.",
+    pix: "단어 뜻만 보지 말고 장면의 분위기와 힌트를 같이 읽어보세요.",
+  },
+  "do-workshop": {
+    title: "마법 공방 제작",
+    mission: "제작서를 읽고 순서 표현에 맞게 재료를 배열해 물약을 완성합니다.",
+    control: "First, Next, Then, Finally 흐름에 맞게 레시피 카드를 누릅니다.",
+    pix: "순서 연결어는 글의 길을 만들어줘요. 첫 단계와 마지막 단계를 먼저 잡아보세요.",
+  },
+  "do-detective": {
+    title: "탐정 증거 연결",
+    mission: "짧은 사건 기록을 읽고 결론을 직접 뒷받침하는 결정적 단서를 고릅니다.",
+    control: "증거 카드를 클릭합니다. 맞는 증거는 사건판에 연결선이 생깁니다.",
+    pix: "그럴듯한 정보와 결정적 증거는 달라요. 질문에 바로 답하는 문장을 찾으세요.",
+  },
+  "do-runner": {
+    title: "WASD 룬 러너",
+    mission: "캐릭터를 움직여 빛 단어 룬을 모으고 함정 단어를 피합니다.",
+    control: "WASD 또는 방향키로 이동합니다. 화면 오른쪽 이동 버튼도 사용할 수 있습니다.",
+    pix: "밝음과 관련된 단어만 모으세요. silent처럼 관계없는 단어는 함정이에요.",
+  },
+  "do-rhythm": {
+    title: "리듬 주문 캐스팅",
+    mission: "박자에 맞춰 A, S, D, F 키를 눌러 상황에 맞는 전치사 주문을 완성합니다.",
+    control: "Start Beat를 누르고 현재 문제에 보이는 한 단어 버튼을 선택합니다.",
+    pix: "초급 모드는 판정이 넉넉해요. 먼저 between, near, on의 장소 단서를 보고 누르세요.",
+  },
+  "do-slingshot": {
+    title: "새총 단어 사격",
+    mission: "뜻에 맞는 단어 표적을 찾아 마법 구슬을 당겨 맞힙니다.",
+    control: "구슬을 왼쪽 아래로 끌어당긴 뒤 놓으면 반대 방향으로 발사됩니다. 드래그가 어려우면 구슬을 한 번 클릭해 예시 발사를 볼 수 있습니다.",
+    pix: "조준선 끝이 실제 도착 방향이에요. radiant 표적의 중심을 노려보세요.",
+  },
+};
+
+function evaluateMiloBakeryAnswer(answer: string) {
+  const normalized = answer.toLowerCase().replace(/\s+/g, " ").trim();
+  const mentionsBank = /\bbank\b/.test(normalized);
+  const usesNearBank =
+    (/\bnear\b/.test(normalized) && mentionsBank)
+    || /\bnext to\b.*\bbank\b/.test(normalized)
+    || /\bbank\b.*\bnext to\b/.test(normalized)
+    || /\bclose to\b.*\bbank\b/.test(normalized)
+    || /\bbank\b.*\bclose to\b/.test(normalized);
+  const misleadingBetween =
+    /\bbetween\b/.test(normalized)
+    && /\bbank\b/.test(normalized)
+    && /\bhospital\b/.test(normalized);
+
+  if (misleadingBetween) {
+    return {
+      correct: false,
+      message: "Milo는 old bakery가 bank 근처인지 묻고 있어요. bank와 hospital 사이에 있다는 다른 장소 설명은 다시 확인해보세요.",
+    };
+  }
+
+  if (answer.trim().length < 12 || !usesNearBank) {
+    return {
+      correct: false,
+      message: "old bakery가 bank 근처라는 상황이 드러나게 near the bank 또는 next to the bank로 안내해보세요.",
+    };
+  }
+
+  return {
+    correct: true,
+    message: "좋아요. Milo가 old bakery가 bank 근처에 있다는 위치 관계를 이해했어요!",
+  };
+}
+
+const todayDoMissionScreens: Record<string, Screen> = {
+  "do-battle": "sentence",
+  "do-assembly": "rune",
+  "do-roleplay": "npc",
+  "do-cultist": "cultist",
+};
 
 function DialogueBox({
   speaker,
@@ -259,9 +406,39 @@ const cultistAssets = {
   innocentMale: "/assets/characters/cultist-do/04_innocent_npc_male_wrong_accused.png",
   innocentFemale: "/assets/characters/cultist-do/05_innocent_npc_female_wrong_accused.png",
   hammerHero: "/assets/characters/cultist-do/06_protagonist_squeaky_hammer_attack.png",
+  ambiguousRobe: "/assets/characters/cultist-do/07_hooded_ambiguous_npc.png",
+  friendlyFemale: "/assets/characters/cultist-do/08_friendly_npc_female.png",
+  suspiciousScholar: "/assets/characters/cultist-do/09_suspicious_scholar_cultist_candidate.png",
+  altFleeing: "/assets/characters/cultist-do/10_alt_simple_robed_fleeing.png",
 };
 
-function Header({ screen, navigate }: { screen: Screen; navigate: (screen: Screen) => void }) {
+function cultistNpcImage(npc: CultistNpc, isTarget: boolean, phase: CultistMissionPhase) {
+  if (!isTarget) return cultistAssets.hidden;
+  if (phase === "wrongAccused") {
+    return npc.reactionType === "femaleInnocent" ? cultistAssets.innocentFemale : cultistAssets.innocentMale;
+  }
+  if (phase === "correctReveal") return cultistAssets.suspiciousScholar;
+  if (phase === "cultistFleeing") return cultistAssets.altFleeing;
+  return npc.id === "b" ? cultistAssets.ambiguousRobe : cultistAssets.hidden;
+}
+
+function cultistWrongAccusedLine(npc: CultistNpc) {
+  return npc.reactionType === "femaleInnocent"
+    ? `저는 "${npc.sentence}"라고 맞게 말했어요!`
+    : `난 "${npc.sentence}"라고 말했다고요!`;
+}
+
+function Header({
+  screen,
+  navigate,
+  audioEnabled,
+  toggleAudio,
+}: {
+  screen: Screen;
+  navigate: (screen: Screen) => void;
+  audioEnabled: boolean;
+  toggleAudio: () => void;
+}) {
   const learningScreens: Screen[] = ["daily-intro", "watch", "do-hub", "sentence", "rune", "npc", "teach", "daily-result"];
   const step = learningScreens.indexOf(screen);
   const activePhase = step <= 1 ? 0 : step <= 5 ? 1 : step === 6 ? 2 : 3;
@@ -291,11 +468,22 @@ function Header({ screen, navigate }: { screen: Screen; navigate: (screen: Scree
               : "The city-state of grammar - Grammia"}
         </div>
       )}
-      <div className="student-chip">
-        <div className="student-level">LV {student.level}</div>
-        <div>
-          <b>{student.name}</b>
-          <small>{student.lingco} Lingco</small>
+      <div className="topbar-actions">
+        <button
+          className={`audio-toggle ${audioEnabled ? "is-on" : ""}`}
+          onClick={toggleAudio}
+          aria-pressed={audioEnabled}
+          aria-label={audioEnabled ? "배경음과 효과음 끄기" : "배경음과 효과음 켜기"}
+        >
+          <span className="audio-toggle-light" aria-hidden="true" />
+          <span>{audioEnabled ? "SOUND ON" : "SOUND OFF"}</span>
+        </button>
+        <div className="student-chip">
+          <div className="student-level">LV {student.level}</div>
+          <div>
+            <b>{student.name}</b>
+            <small>{student.lingco} Lingco</small>
+          </div>
         </div>
       </div>
     </header>
@@ -485,7 +673,7 @@ function ActivitySandbox({ item, phase }: { item: ActivityItem; phase: ActivityP
   const [step, setStep] = useState(0);
   const [material, setMaterial] = useState<string[]>(["Rule"]);
   const [collected, setCollected] = useState<string[]>([]);
-  const [runner, setRunner] = useState({ x: 12, y: 70 });
+  const [runner, setRunner] = useState({ x: 22, y: 31 });
   const [runnerWords, setRunnerWords] = useState<string[]>([]);
   const [rhythmPlaying, setRhythmPlaying] = useState(false);
   const [rhythmTime, setRhythmTime] = useState(0);
@@ -498,9 +686,9 @@ function ActivitySandbox({ item, phase }: { item: ActivityItem; phase: ActivityP
   const [fogCreature, setFogCreature] = useState(0);
   const [fogMode, setFogMode] = useState("Choose It");
   const [bossMode, setBossMode] = useState("");
-  const [fogStep, setFogStep] = useState<FogSetupStep>("city");
+  const [fogStep, setFogStep] = useState<FogSetupStep>("battle");
   const [showBossModes, setShowBossModes] = useState(false);
-  const [fogReady, setFogReady] = useState(false);
+  const [fogReady, setFogReady] = useState(true);
   const [fogBattleState, setFogBattleState] = useState<FogBattleState>("setup");
   const [fogPlayerHp, setFogPlayerHp] = useState(100);
   const [fogEnemyHp, setFogEnemyHp] = useState(100);
@@ -511,10 +699,20 @@ function ActivitySandbox({ item, phase }: { item: ActivityItem; phase: ActivityP
   const [fogStageShift, setFogStageShift] = useState({ x: 0, y: 0 });
 
   const runnerTargets = [
-    { word: "radiant", x: 24, y: 30, good: true },
-    { word: "gleam", x: 62, y: 24, good: true },
-    { word: "illuminate", x: 78, y: 68, good: true },
-    { word: "silent", x: 43, y: 58, good: false },
+    { word: "radiant", x: 25, y: 31, good: true },
+    { word: "gleam", x: 62, y: 25, good: true },
+    { word: "illuminate", x: 78, y: 67, good: true },
+    { word: "silent", x: 43, y: 61, good: false },
+  ];
+  const runnerRoute = ["radiant", "gleam", "illuminate"];
+  const runnerBounds = [
+    { x1: 11, x2: 36, y1: 16, y2: 48 },
+    { x1: 47, x2: 75, y1: 12, y2: 40 },
+    { x1: 34, x2: 58, y1: 52, y2: 82 },
+    { x1: 68, x2: 90, y1: 50, y2: 82 },
+    { x1: 34, x2: 52, y1: 29, y2: 41 },
+    { x1: 45, x2: 56, y1: 40, y2: 62 },
+    { x1: 55, x2: 71, y1: 63, y2: 75 },
   ];
   const slingAnchor = { x: 20, y: 72 };
   const slingTargets = [
@@ -528,10 +726,15 @@ function ActivitySandbox({ item, phase }: { item: ActivityItem; phase: ActivityP
   };
   const slingAimEnd = sling.shot ? { x: sling.x, y: sling.y } : slingLanding;
   const slingPullPower = Math.hypot(slingAnchor.x - sling.x, slingAnchor.y - sling.y);
-  const rhythmHits = Object.values(rhythmJudgements).filter((result) => result !== "miss").length;
-  const rhythmNextNote = rhythmNotes.find((_, index) => !rhythmJudgements[index]);
+  const rhythmChallengeIds = Array.from(new Set(rhythmNotes.map((note) => note.pairId)));
+  const rhythmChallengeCount = rhythmChallengeIds.length;
+  const rhythmHits = rhythmNotes.filter((note, index) => note.correct && rhythmJudgements[index] && rhythmJudgements[index] !== "miss").length;
+  const rhythmNextChallenge = rhythmNotes.find((note) => !rhythmNotes.some((candidate, index) => candidate.pairId === note.pairId && rhythmJudgements[index]));
+  const rhythmNextNote = rhythmNextChallenge
+    ? rhythmNotes.find((note) => note.pairId === rhythmNextChallenge.pairId && note.correct)
+    : undefined;
   const rhythmProgress = Math.min(100, Math.max(0, (rhythmTime / rhythmTotalMs) * 100));
-  const rhythmPattern = rhythmNotes.slice(0, 6).map((note) => note.key);
+  const rhythmPattern = rhythmNotes.filter((note) => note.correct).map((note) => note.key);
 
   const voice = () => {
     setActive((value) => !value);
@@ -628,16 +831,29 @@ function ActivitySandbox({ item, phase }: { item: ActivityItem; phase: ActivityP
   const moveRunner = (dx: number, dy: number) => {
     setRunner((current) => {
       const next = { x: Math.max(5, Math.min(92, current.x + dx)), y: Math.max(12, Math.min(82, current.y + dy)) };
+      const insidePath = runnerBounds.some((bounds) => next.x >= bounds.x1 && next.x <= bounds.x2 && next.y >= bounds.y1 && next.y <= bounds.y2);
+      if (!insidePath) {
+        setFeedback("벽은 통과할 수 없어요. 방과 통로 안에서 빛 단어가 있는 길을 따라가세요.");
+        return current;
+      }
       const touched = runnerTargets.find((target) => Math.abs(target.x - next.x) < 7 && Math.abs(target.y - next.y) < 9);
       if (touched?.good) {
         setRunnerWords((words) => {
           if (words.includes(touched.word)) return words;
+          const nextWord = runnerRoute[words.length];
+          if (touched.word !== nextWord) {
+            setFeedback(`아직 ${touched.word} 차례가 아니에요. 먼저 ${nextWord} 룬을 찾으세요.`);
+            return words;
+          }
           const updated = [...words, touched.word];
-          setFeedback(updated.length === 3 ? "탐험 완료 · 빛 어휘 3개를 모아 숲의 길을 복원했습니다!" : `${touched.word} 유물 획득 · 빛 어휘 ${updated.length}/3`);
+          setFeedback(updated.length === 3 ? "탐험 완료! 빛 단어 3개를 순서대로 모아 출구 문을 열었어요." : `${touched.word} 룬 수집! 다음 빛 단어를 찾아가세요. ${updated.length}/3`);
           return updated;
         });
       } else if (touched) {
-        setFeedback("silent는 소리와 관련된 단어예요. 빛의 유물을 찾아 계속 움직이세요.");
+        setFeedback("silent는 빛과 관련 없는 함정 단어예요. 알맞은 경로로 돌아가세요.");
+      } else {
+        const nextWord = runnerRoute[runnerWords.length] ?? "exit";
+        setFeedback(`이동 완료 · 현재 위치 (${Math.round(next.x)}, ${Math.round(next.y)}). 다음 목표는 ${nextWord} 룬이에요.`);
       }
       return next;
     });
@@ -659,7 +875,7 @@ function ActivitySandbox({ item, phase }: { item: ActivityItem; phase: ActivityP
     setRhythmTime(0);
     setRhythmJudgements({});
     setCombo(0);
-    setFeedback("BEAT START · 노트가 가운데 판정선에 닿을 때 맞는 키를 누르세요.");
+    setFeedback("BEAT START · 동시에 오는 두 노트 중 문법상 맞는 단어의 키를 누르세요.");
   };
   const hitRhythm = (key: string) => {
     const pressed = key.toUpperCase() as RhythmKey;
@@ -670,19 +886,36 @@ function ActivitySandbox({ item, phase }: { item: ActivityItem; phase: ActivityP
     }
     const windows = rhythmNotes
       .map((note, index) => ({ note, index, diff: Math.abs(note.beat * rhythmBeatMs + rhythmLeadMs - rhythmTime) }))
-      .filter(({ index }) => !rhythmJudgements[index])
+      .filter(({ note }) => !rhythmNotes.some((candidate, candidateIndex) => candidate.pairId === note.pairId && rhythmJudgements[candidateIndex]))
       .sort((a, b) => a.diff - b.diff);
     const closest = windows[0];
-    if (!closest || closest.diff > 260 || closest.note.key !== pressed) {
+    if (!closest || closest.diff > 900) {
       setCombo(0);
-      setFeedback(closest ? `MISS · 판정선 근처의 노트는 ${closest.note.key} 키예요.` : "MISS · 다음 주문 패턴을 기다리세요.");
+      setFeedback(closest ? `MISS · 판정선에 더 가까워졌을 때 고르세요. 힌트: ${closest.note.prompt}` : "MISS · 다음 주문 패턴을 기다리세요.");
       return;
     }
-    const grade: RhythmJudgement = closest.diff <= 95 ? "perfect" : "good";
-    setRhythmJudgements((current) => ({ ...current, [closest.index]: grade }));
+    const pair = rhythmNotes
+      .map((note, index) => ({ note, index }))
+      .filter(({ note }) => note.pairId === closest.note.pairId);
+    const chosen = pair.find(({ note }) => note.key === pressed);
+    const correctNote = pair.find(({ note }) => note.correct)?.note;
+    if (!chosen || !chosen.note.correct) {
+      setCombo(0);
+      setRhythmJudgements((current) => ({
+        ...current,
+        ...Object.fromEntries(pair.map(({ index }) => [index, "miss" as RhythmJudgement])),
+      }));
+      setFeedback(`MISS · ${closest.note.prompt} 정답은 ${correctNote?.key ?? "?"}: ${correctNote?.label ?? ""} 입니다.`);
+      return;
+    }
+    const grade: RhythmJudgement = closest.diff <= 450 ? "perfect" : "good";
+    setRhythmJudgements((current) => ({
+      ...current,
+      ...Object.fromEntries(pair.map(({ note, index }) => [index, note.correct ? grade : "miss" as RhythmJudgement])),
+    }));
     setCombo((value) => {
       const next = value + 1;
-      setFeedback(`${grade === "perfect" ? "PERFECT" : "GOOD"} · Combo x${next}`);
+      setFeedback(`${grade === "perfect" ? "PERFECT" : "GOOD"} · ${chosen.note.label} 선택, Combo x${next}`);
       return next;
     });
   };
@@ -716,7 +949,7 @@ function ActivitySandbox({ item, phase }: { item: ActivityItem; phase: ActivityP
         const next = { ...current };
         rhythmNotes.forEach((note, index) => {
           const hitAt = note.beat * rhythmBeatMs + rhythmLeadMs;
-          if (!next[index] && elapsed - hitAt > 260) {
+          if (!next[index] && elapsed - hitAt > 500) {
             next[index] = "miss";
             changed = true;
           }
@@ -735,9 +968,9 @@ function ActivitySandbox({ item, phase }: { item: ActivityItem; phase: ActivityP
     if (item.id !== "do-rhythm" || rhythmPlaying) return;
     const judged = Object.keys(rhythmJudgements).length;
     if (judged < rhythmNotes.length) return;
-    const perfects = Object.values(rhythmJudgements).filter((result) => result === "perfect").length;
-    const goods = Object.values(rhythmJudgements).filter((result) => result === "good").length;
-    setFeedback(perfects + goods >= 6 ? `SPELL CLEAR · ${perfects} Perfect / ${goods} Good` : "RETRY BEAT · 판정선에 닿는 순간을 다시 노려보세요.");
+    const perfects = rhythmNotes.filter((note, index) => note.correct && rhythmJudgements[index] === "perfect").length;
+    const goods = rhythmNotes.filter((note, index) => note.correct && rhythmJudgements[index] === "good").length;
+    setFeedback(perfects + goods >= 3 ? `SPELL CLEAR · 문법 노트 ${perfects + goods}/${rhythmChallengeCount}개 성공!` : "RETRY BEAT · 문제를 읽고 두 노트 중 알맞은 단어를 고르세요.");
   }, [item.id, rhythmPlaying, rhythmJudgements]);
 
   useEffect(() => {
@@ -762,7 +995,7 @@ function ActivitySandbox({ item, phase }: { item: ActivityItem; phase: ActivityP
     }
     if (phase === "do") {
       const scenes: Record<string, { location: string; actor: string; role: string; objective: string; line: string }> = {
-        "do-explore": { location: "LUMIO GROVE", actor: "Pix", role: "Expedition Guide", objective: "Recover four lost light words", line: "숲 곳곳에 빛을 나타내는 단어가 숨어 있어. 설명을 읽고 알맞은 유물을 찾아보자." },
+        "do-explore": { location: "LUMIO CRYSTAL CAVE", actor: "Pix", role: "Treasure Guide", objective: "Follow clues and unlock the inner treasure", line: "동굴 깊은 곳에 단어 유물이 잠들어 있어. 힌트를 읽고 알맞은 유물을 모으면 보물문이 열릴 거야." },
         "do-assembly": { location: "GRAMMIA DEVICE CHAMBER", actor: "Master Gram", role: "Sentence Engineer", objective: "Rebuild the past-tense engine", line: "장치 부품은 문장과 같단다. 올바른 순서로 연결해야 과거의 기록이 다시 움직여." },
         "do-battle": { location: "LISTENIA FOG DISTRICT", actor: "Echo Wraith", role: "Distorted Sound Creature", objective: "Identify the true sound signal", line: "안개 속에서 진짜 소리를 골라내야 해. 신호를 듣고 정확한 동사를 선택해!" },
         "do-workshop": { location: "WRITIA MAGIC WORKSHOP", actor: "Artisan Tain", role: "Sequence Crafter", objective: "Craft the moonlight potion", line: "좋은 제작서는 순서가 분명해야 해. 연결 표현을 따라 물약을 완성해보자." },
@@ -790,6 +1023,39 @@ function ActivitySandbox({ item, phase }: { item: ActivityItem; phase: ActivityP
 
   const preview = (() => {
     switch (item.id) {
+      case "watch-human-lecture":
+      case "watch-vr-lecture": {
+        const demoLecture = item.id === "watch-human-lecture" ? watchScenes[0] : watchScenes[1];
+        return (
+          <div className={`watch-atlas-demo ${item.id === "watch-vr-lecture" ? "watch-atlas-vr" : "watch-atlas-real"}`}>
+            <span className="demo-stage-label">{demoLecture.label} · Pix AI ready</span>
+            {demoLecture.embedSrc && <iframe src={demoLecture.embedSrc} title={demoLecture.title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen />}
+            {demoLecture.videoSrc && <video src={demoLecture.videoSrc} controls preload="metadata" />}
+            <div className="watch-atlas-pix">
+              <img src={sceneAssets.characters.pixhappy} alt="Pix" />
+              <p>{demoLecture.pixPrompt}</p>
+              <small>{item.id === "watch-vr-lecture" ? "장면 속 거리와 방향을 보며 near 단서를 찾습니다." : "실제 선생님 설명 흐름을 보며 between / near / on을 정리합니다."}</small>
+            </div>
+          </div>
+        );
+      }
+      case "watch-master-lecture": {
+        const demoLecture = watchScenes[2];
+        const pages = demoLecture.bookPages ?? [];
+        const page = pages[step % Math.max(1, pages.length)];
+        return (
+          <div className="watch-atlas-demo watch-atlas-master">
+            <span className="demo-stage-label">{demoLecture.label} · {demoLecture.instructor}</span>
+            {page && <img src={page.src} alt={`${demoLecture.instructor} ${page.label}`} />}
+            <div className="watch-atlas-pix">
+              <img src={sceneAssets.characters.pix} alt="Pix" />
+              <p>{demoLecture.masterLines?.[step % Math.max(1, pages.length)] ?? demoLecture.pixPrompt}</p>
+              <small>{page?.label ?? "교재"} · {step + 1} / {Math.max(1, pages.length)}</small>
+              <button className="lab-action" onClick={() => setStep((value) => (value + 1) % Math.max(1, pages.length))}>Next page</button>
+            </div>
+          </div>
+        );
+      }
       case "watch-dialogue":
         return (
           <div className="dialogue-demo">
@@ -836,15 +1102,49 @@ function ActivitySandbox({ item, phase }: { item: ActivityItem; phase: ActivityP
         );
       case "do-explore": {
         const relics = [
-          { word: "glow", hint: "은은하게 빛나다", mark: "G" },
-          { word: "shine", hint: "밝게 빛나다", mark: "S" },
-          { word: "bright", hint: "빛이 밝은", mark: "B" },
-          { word: "dark", hint: "빛이 없는", mark: "D" },
+          { clue: "은은하게 빛나다", answer: "glow", choices: ["glow", "dark", "quiet", "heavy"], mark: "G" },
+          { clue: "밝게 빛나다", answer: "shine", choices: ["hide", "shine", "sleep", "slow"], mark: "S" },
+          { clue: "빛이 밝은", answer: "bright", choices: ["small", "bright", "late", "silent"], mark: "B" },
+          { clue: "강한 빛을 내는", answer: "radiant", choices: ["radiant", "empty", "cold", "dark"], mark: "R" },
         ];
+        const currentRelic = relics[Math.min(collected.length, relics.length - 1)];
+        const expeditionDone = collected.length >= relics.length;
+        const chooseRelic = (word: string) => {
+          if (expeditionDone) return;
+          if (word !== currentRelic.answer) {
+            success(`${word}는 이번 힌트와 맞지 않아요. 장면의 분위기와 뜻을 다시 비교해보세요.`);
+            return;
+          }
+          setCollected((current) => [...current, word]);
+          success(collected.length + 1 === relics.length ? "보물문 개방! 빛 단어를 모두 정확히 골랐어요." : `${word} 유물 회수! 다음 힌트로 이동합니다.`);
+        };
         return (
           <div className="expedition-demo">
-            <div className="expedition-copy"><span className="demo-stage-label">Vocabulary expedition · Light & nature</span><h3>빛의 숲에서 잃어버린 단어 유물 4개를 수집하세요.</h3><p>{collected.length} / 4 relics recovered</p></div>
-            <div className="artifact-grid">{relics.map((relic) => <button className={collected.includes(relic.word) ? "collected" : ""} key={relic.word} onClick={() => setCollected((current) => current.includes(relic.word) ? current.filter((word) => word !== relic.word) : [...current, relic.word])}><i>{relic.mark}</i><b>{relic.word}</b><small>{relic.hint}</small></button>)}</div>
+            <img className="do-prop cave-torch-left" src={doActivityAssets.exploration.torchOn} alt="" aria-hidden="true" />
+            <img className="do-prop cave-chest" src={expeditionDone ? doActivityAssets.exploration.treasureOpen : doActivityAssets.exploration.treasureClosed} alt="" aria-hidden="true" />
+            <img className="do-prop cave-glow" src={doActivityAssets.exploration.treasureGlow} alt="" aria-hidden="true" />
+            <div className="expedition-copy">
+              <span className="demo-stage-label">Cave expedition · Treasure words</span>
+              <h3>{expeditionDone ? "보물상자가 열렸습니다!" : "힌트에 맞는 영어 단어 유물을 고르세요."}</h3>
+              <p>{collected.length} / {relics.length} relics recovered</p>
+              {!expeditionDone && <div className="relic-clue"><b>CLUE {collected.length + 1}</b><span>{currentRelic.clue}</span></div>}
+            </div>
+            <div className="artifact-grid">
+              {(expeditionDone ? collected : currentRelic.choices).map((word) => (
+                <button
+                  className={collected.includes(word) ? "collected" : word === "dark" || word === "silent" ? "trap-artifact" : ""}
+                  key={word}
+                  onClick={() => chooseRelic(word)}
+                  disabled={expeditionDone}
+                >
+                  <img src={word === "dark" || word === "silent" ? doActivityAssets.exploration.artifactWrong : doActivityAssets.exploration.artifactCorrect} alt="" aria-hidden="true" />
+                  <i>{word.slice(0, 1).toUpperCase()}</i>
+                  <b>{word}</b>
+                  <small>{collected.includes(word) ? "recovered" : "choose"}</small>
+                </button>
+              ))}
+            </div>
+            <RewardToast show={expeditionDone} message="보물 탐험 성공!" label="+200 LINGO" />
           </div>
         );
       }
@@ -852,9 +1152,11 @@ function ActivitySandbox({ item, phase }: { item: ActivityItem; phase: ActivityP
         const parts = ["The", "crystal", "glowed", "all", "night."];
         return (
           <div className="device-demo">
+            <img className="do-prop rune-door-art" src={sequence.length === parts.length ? doActivityAssets.runePuzzle.doorOpen : doActivityAssets.runePuzzle.doorLocked} alt="" aria-hidden="true" />
+            <img className="do-prop rune-door-light" src={doActivityAssets.runePuzzle.doorLight} alt="" aria-hidden="true" />
             <span className="demo-stage-label">Grammar engineering · Past tense</span><div className={`device-core ${sequence.length === parts.length ? "charged" : ""}`}><i>{sequence.length}/5</i><b>TIME ENGINE</b><small>Connect the sentence circuits</small></div>
             <div className="sequence-slot">{sequence.length ? sequence.join(" ") : "Tap components in the correct order"}</div>
-            <div className="token-row">{parts.map((part) => <button key={part} disabled={sequence.includes(part)} onClick={() => setSequence([...sequence, part])}>{part}</button>)}</div>
+            <div className="token-row rune-token-row">{parts.map((part) => <button key={part} disabled={sequence.includes(part)} onClick={() => setSequence([...sequence, part])}><img src={doActivityAssets.runePuzzle.wordTile} alt="" aria-hidden="true" />{part}</button>)}</div>
             <div className="lab-inline-actions"><button onClick={() => setSequence([])}>Reset</button><button onClick={() => success(sequence.join(" ") === parts.join(" ") ? "장치 재가동 · 과거형 glowed가 시간 엔진을 움직였습니다!" : "회로 순서를 다시 확인하세요.")}>Power device</button></div>
           </div>
         );
@@ -862,31 +1164,74 @@ function ActivitySandbox({ item, phase }: { item: ActivityItem; phase: ActivityP
       case "do-battle":
         return (
           <div className="battle-demo">
-            <div className={`fog-target ${playing ? "listening" : ""}`}><span>ECHO SHIELD 72%</span><b>{playing ? "!" : "?"}</b></div>
+            <div className={`fog-target ${playing ? "listening" : ""}`}>
+              <img className="sentence-stone-art" src={selected === "rang" ? doActivityAssets.sentencePurify.stonePurified : doActivityAssets.sentencePurify.stoneBlank} alt="" aria-hidden="true" />
+              {selected === "rang" && <img className="purify-beam-art" src={doActivityAssets.sentencePurify.purifyBeam} alt="" aria-hidden="true" />}
+              <span>ECHO SHIELD 72%</span><b>{playing ? "!" : "?"}</b>
+            </div>
             <div><span className="demo-stage-label">Listening battle · Sound memory</span><h3>신호를 듣고 빈칸에 들어갈 과거형 동사를 공격하세요.</h3><button className="signal-play" onClick={() => { setPlaying(true); success("재생 신호 · “The bell rang twice.”"); }}>Play echo signal</button><p className="battle-sentence">The bell ___ twice.</p><div className="lab-option-grid">{["rang", "shone", "sang"].map((word) => <button className={selected === word ? (word === "rang" ? "correct" : "wrong") : ""} key={word} onClick={() => { setSelected(word); success(word === "rang" ? "정화 공격 적중 · 듣기 신호와 동사가 정확히 연결됐습니다!" : "소리의 의미와 문장을 다시 연결해보세요."); }}>{word}</button>)}</div></div>
           </div>
         );
       case "do-workshop": {
         const recipe = ["First, heat the crystal.", "Next, add moonwater.", "Then, stir it slowly.", "Finally, turn off the flame."];
+        const recipeOptions = [
+          { line: recipe[2], ingredient: "slow stir", className: "herb" },
+          { line: recipe[0], ingredient: "sun crystal", className: "crystal" },
+          { line: recipe[3], ingredient: "soft flame", className: "flame" },
+          { line: recipe[1], ingredient: "moonwater", className: "water" },
+        ];
+        const recipeIsCorrect = sequence.join("|") === recipe.join("|");
+        const workshopDone = selected === "workshop-success" && recipeIsCorrect;
+        const workshopFailed = selected === "workshop-error";
+        const checkWorkshop = () => {
+          if (recipeIsCorrect) {
+            setSelected("workshop-success");
+            success("제작 성공! 순서 표현이 정확한 달빛 물약이 완성됐습니다.");
+            return;
+          }
+          setSelected("workshop-error");
+          success("First부터 Finally까지 제작 흐름을 다시 살펴보세요.");
+        };
         return (
           <div className="workshop-demo">
-            <span className="demo-stage-label">Writing workshop · Sequence expressions</span><h3>제작 순서를 눌러 달빛 물약을 완성하세요.</h3>
+            <img className="do-prop workshop-artisan" src={workshopDone ? doActivityAssets.workshop.artisanSuccess : doActivityAssets.workshop.artisanIdle} alt="" aria-hidden="true" />
+            <img className="do-prop workshop-cauldron" src={workshopDone ? doActivityAssets.workshop.cauldronSuccess : workshopFailed ? doActivityAssets.workshop.cauldronFail : doActivityAssets.workshop.cauldronIdle} alt="" aria-hidden="true" />
+            <img className="do-prop workshop-scroll" src={doActivityAssets.workshop.recipeScroll} alt="" aria-hidden="true" />
+            {workshopDone && <img className="do-prop workshop-success-burst" src={doActivityAssets.workshop.successBurst} alt="" aria-hidden="true" />}
+            <div className="workshop-copy">
+              <span className="demo-stage-label">Writing workshop · Sequence expressions</span>
+              <h3>냄비에 재료를 순서대로 넣어 달빛 물약을 완성하세요.</h3>
+            </div>
             <div className="recipe-track">{sequence.length ? sequence.map((line, index) => <span key={line}><i>{index + 1}</i>{line}</span>) : <p>Choose the recipe steps below</p>}</div>
-            <div className="recipe-parts">{[recipe[2], recipe[0], recipe[3], recipe[1]].map((line) => <button key={line} disabled={sequence.includes(line)} onClick={() => setSequence([...sequence, line])}>{line}</button>)}</div>
-            <div className="lab-inline-actions"><button onClick={() => setSequence([])}>Clear recipe</button><button onClick={() => success(sequence.join("|") === recipe.join("|") ? "제작 성공 · 순서 표현이 정확한 달빛 물약이 완성됐습니다!" : "First부터 Finally까지 제작 흐름을 다시 살펴보세요.")}>Craft potion</button></div>
+            <div className="recipe-parts">{recipeOptions.map((item) => <button className={`ingredient-card ${item.className}`} key={item.line} disabled={sequence.includes(item.line)} onClick={() => { setSelected(""); setSequence([...sequence, item.line]); }}><img src={doActivityAssets.workshop.ingredientCard} alt="" aria-hidden="true" /><i /><b>{item.ingredient}</b><span>{item.line}</span></button>)}</div>
+            <div className="lab-inline-actions"><button onClick={() => { setSequence([]); setSelected(""); }}>Clear recipe</button><button onClick={checkWorkshop}>Craft potion</button></div>
+            <RewardToast show={workshopDone} message="달빛 물약 완성!" label="+200 LINGO" />
           </div>
         );
       }
       case "do-detective":
         return (
           <div className="detective-demo">
+            <img className="do-prop detective-miro" src={selected ? doActivityAssets.detective.miroSurprised : doActivityAssets.detective.miroIdle} alt="" aria-hidden="true" />
+            <img className="do-prop detective-board" src={selected ? doActivityAssets.detective.caseBoardConnected : doActivityAssets.detective.caseBoardEmpty} alt="" aria-hidden="true" />
+            {selected && <img className="do-prop detective-stamp" src={doActivityAssets.detective.stampSolved} alt="" aria-hidden="true" />}
             <span className="demo-stage-label">Reading mystery · Find decisive evidence</span><div className="case-file"><b>CASE 014 · The Missing Lantern</b><p>Mina left the archive before sunset. At midnight, the lantern was still warm and a fresh blue feather lay beside it.</p></div><h3>누군가 최근까지 등불을 사용했다는 결정적 단서는?</h3>
             <div className="evidence-grid">{["Mina left before sunset.", "The lantern was still warm.", "A blue feather was beside it."].map((clue, index) => <button className={selected === clue ? (index === 1 ? "correct" : "wrong") : ""} key={clue} onClick={() => { setSelected(clue); success(index === 1 ? "사건 해결 · warm이라는 상태 정보로 최근 사용을 추론했습니다!" : "흥미로운 단서지만, 최근 사용 시점을 직접 증명하지는 못해요."); }}><i>0{index + 1}</i><span>{clue}</span></button>)}</div>
+            <RewardToast show={selected === "The lantern was still warm."} message="증거 연결 성공!" label="+200 LINGO" />
           </div>
         );
       case "do-roleplay":
         return (
-          <div className="open-talk-demo roleplay-demo"><div className="ai-bubble"><b>MERCHANT LUMA · FESTIVAL MARKET</b><p>I only lend my magic compass to a responsible adventurer. Why should I trust you?</p></div><div className="roleplay-goal"><span>MISSION GOAL</span><b>Give a reason + make a promise</b><small>Example tools: because, I will, I can</small></div><label>Your open response<textarea value={typed} onChange={(event) => setTyped(event.target.value)} placeholder="Try: You can trust me because I will return it after the festival." /></label><div className="roleplay-actions"><VoiceControl active={active} onClick={voice} label="Answer by voice" /><button className="lab-action" onClick={() => success(typed.trim().length > 18 ? "설득 성공 · 이유와 약속이 포함되어 상인이 나침반을 빌려주었습니다!" : "조금 더 구체적인 이유와 약속을 영어로 말해보세요.")}>Send response</button></div></div>
+          <div className="open-talk-demo roleplay-demo">
+            <img className="do-prop roleplay-milo" src={doActivityAssets.npcMissionTalk.miloConfused} alt="" aria-hidden="true" />
+            <img className="do-prop route-signpost" src={doActivityAssets.npcMissionTalk.routeSignpost} alt="" aria-hidden="true" />
+            <img className="do-prop route-map" src={doActivityAssets.npcMissionTalk.mapFragment} alt="" aria-hidden="true" />
+            <img className="do-prop route-light-path" src={doActivityAssets.npcMissionTalk.routeLightPath} alt="" aria-hidden="true" />
+            <div className="ai-bubble"><b>MILO · LOST IN THE MARKET</b><p>I can't find the old bakery. Is it near the bank?</p></div>
+            <div className="roleplay-goal"><span>MISSION GOAL</span><b>Guide Milo using a location phrase</b><small>Useful tools: between, near, next to</small></div>
+            <label>Your open response<textarea value={typed} onChange={(event) => setTyped(event.target.value)} placeholder="Try: It is near the bank." /></label>
+            <div className="roleplay-actions"><VoiceControl active={active} onClick={voice} label="Answer by voice" /><button className="lab-action" onClick={() => success(evaluateMiloBakeryAnswer(typed).message)}>Send response</button></div>
+          </div>
         );
       case "do-runner":
         return (
@@ -906,19 +1251,35 @@ function ActivitySandbox({ item, phase }: { item: ActivityItem; phase: ActivityP
                 <em className="runner-torch torch-a" />
                 <em className="runner-torch torch-b" />
                 <em className="runner-torch torch-c" />
+                <img className="runner-map-prop runner-spike" src={doActivityAssets.runner.spikeTrap} alt="" aria-hidden="true" />
+                <img className="runner-map-prop runner-fog" src={doActivityAssets.runner.fogHazard} alt="" aria-hidden="true" />
+                <img className="runner-map-prop runner-exit-portal" src={runnerWords.length >= 3 ? doActivityAssets.runner.exitOpen : doActivityAssets.runner.exitClosed} alt="" aria-hidden="true" />
               </div>
               <div className="runner-path" />
-              {runnerTargets.map((target) => <div key={target.word} className={`runner-rune ${target.good ? "good" : "trap"} ${runnerWords.includes(target.word) ? "collected" : ""}`} style={{ left: `${target.x}%`, top: `${target.y}%` }}><i>{target.good ? "✦" : "?"}</i><span>{target.word}</span></div>)}
+              {runnerTargets.map((target) => {
+                const isNextTarget = target.word === runnerRoute[runnerWords.length];
+                return (
+                  <div key={target.word} className={`runner-rune ${target.good ? "good" : "trap"} ${runnerWords.includes(target.word) ? "collected" : ""} ${isNextTarget ? "next-target" : ""}`} style={{ left: `${target.x}%`, top: `${target.y}%` }}>
+                    <i>{target.good ? "✦" : "?"}</i>
+                    <span>{isNextTarget ? `NEXT · ${target.word}` : target.word}</span>
+                  </div>
+                );
+              })}
               <div className="runner-avatar" style={{ left: `${runner.x}%`, top: `${runner.y}%` }}><i>J</i><span>YOU</span></div>
             </div>
-            <div className="runner-controls"><span>빛과 관련된 유물만 수집하세요.</span><div><button onClick={() => moveRunner(-6, 0)}>A</button><button onClick={() => moveRunner(0, -6)}>W</button><button onClick={() => moveRunner(0, 6)}>S</button><button onClick={() => moveRunner(6, 0)}>D</button></div></div>
+            <div className="runner-controls"><span>벽 안쪽 통로를 따라 radiant → gleam → illuminate 순서로 찾으세요.</span><div><button onClick={() => moveRunner(-6, 0)}>A</button><button onClick={() => moveRunner(0, -6)}>W</button><button onClick={() => moveRunner(0, 6)}>S</button><button onClick={() => moveRunner(6, 0)}>D</button></div></div>
+            <RewardToast show={runnerWords.length >= 3} message="탐험 경로 완주!" label="+200 LINGO" />
           </div>
         );
-      case "do-rhythm":
+      case "do-rhythm": {
+        const activePair = rhythmNextChallenge
+          ? rhythmNotes.filter((note) => note.pairId === rhythmNextChallenge.pairId)
+          : rhythmNotes.filter((note) => note.pairId === 0);
+        const labelForKey = (key: RhythmKey) => activePair.find((note) => note.key === key)?.label ?? "wait";
         return (
           <div className="rhythm-demo">
-            <div className="arcade-topline"><span>RHYTHM SPELL · HIT THE GLOW LINE</span><b>COMBO x{combo}</b><small>{rhythmPlaying ? `${Math.max(0, Math.ceil((rhythmTotalMs - rhythmTime) / 1000))}s` : "PRESS START"}</small></div>
-            <h3>The <em>CRYS</em>tal <em>GLOWED</em> all <em>NIGHT</em>.</h3>
+            <div className="arcade-topline"><span>RHYTHM SPELL · GRAMMAR NOTE</span><b>COMBO x{combo}</b><small>{rhythmPlaying ? `${Math.max(0, Math.ceil((rhythmTotalMs - rhythmTime) / 1000))}s` : "PRESS START"}</small></div>
+            <h3>{rhythmNextChallenge?.prompt ?? "두 노트 중 문법상 맞는 단어를 고르세요."}</h3>
             <div className="rhythm-stage">
               <div className="rhythm-lanes" aria-hidden="true">{(["A", "S", "D", "F"] as RhythmKey[]).map((key) => <span key={key}>{key}</span>)}</div>
               <div className="rhythm-hit-line"><b>HIT</b></div>
@@ -929,7 +1290,7 @@ function ActivitySandbox({ item, phase }: { item: ActivityItem; phase: ActivityP
                 const left = Math.max(8, Math.min(106, 100 - progress * 50));
                 const visible = rhythmPlaying ? rhythmTime >= travelStart - 180 && rhythmTime <= hitAt + 560 : index < 7;
                 const status = rhythmJudgements[index];
-                const timing = rhythmPlaying && !status && Math.abs(hitAt - rhythmTime) <= 160;
+                const timing = rhythmPlaying && !status && Math.abs(hitAt - rhythmTime) <= 450;
                 if (!visible) return null;
                 return (
                   <i
@@ -937,30 +1298,30 @@ function ActivitySandbox({ item, phase }: { item: ActivityItem; phase: ActivityP
                     className={`rhythm-note lane-${note.key.toLowerCase()} ${status ?? ""} ${timing ? "timing" : ""}`}
                     style={{ left: `${left}%`, top: `${rhythmLaneTop[note.key]}%` }}
                   >
+                    <img src={doActivityAssets.rhythm.notes[note.key]} alt="" aria-hidden="true" />
                     <span>{note.key}</span>
                     <small>{note.label}</small>
                   </i>
                 );
               })}
             </div>
-            <div className="rhythm-meter"><i style={{ width: `${rhythmProgress}%` }} /><span>{rhythmHits}/{rhythmNotes.length} HIT</span></div>
-            <div className="rhythm-keys">{(["A", "S", "D", "F"] as RhythmKey[]).map((key) => <button key={key} className={rhythmNextNote?.key === key ? "next" : ""} onClick={() => hitRhythm(key)}><i>{key}</i><span>{key === "A" ? "The / again" : key === "S" ? "CRYS-tal / all" : key === "D" ? "GLOWED" : "NIGHT / CAST"}</span></button>)}</div>
+            <div className="rhythm-meter"><i style={{ width: `${rhythmProgress}%` }} /><span>{rhythmHits}/{rhythmChallengeCount} grammar notes</span></div>
+            <div className="rhythm-keys">{(["A", "S", "D", "F"] as RhythmKey[]).map((key) => {
+              const activeLabel = labelForKey(key);
+              return <button key={key} className={rhythmNextNote?.key === key ? "next" : ""} onClick={() => hitRhythm(key)} disabled={activeLabel === "wait" && rhythmPlaying}><i>{key}</i><span>{activeLabel}</span></button>;
+            })}</div>
             <button className="rhythm-start" onClick={startRhythmGame}>{rhythmPlaying ? "Restart Beat" : "Start Beat"}</button>
+            <RewardToast show={Object.keys(rhythmJudgements).length >= rhythmNotes.length && rhythmHits >= 3} message="리듬 주문 성공!" label="+200 LINGO" />
           </div>
         );
-        return (
-          <div className="rhythm-demo">
-            <div className="arcade-topline"><span>RHYTHM SPELL · SENTENCE STRESS</span><b>COMBO x{combo}</b><small>KEYS A S D F</small></div>
-            <h3>The <em>CRYS</em>tal <em>GLOWED</em> all <em>NIGHT</em>.</h3>
-            <div className="rhythm-track">{rhythmPattern.map((key, index) => <i key={`${key}-${index}`} className={index === rhythmIndex ? "active" : index < rhythmIndex ? "hit" : ""}><span>{key}</span></i>)}</div>
-            <div className="rhythm-keys">{["A", "S", "D", "F"].map((key) => <button key={key} className={rhythmPattern[rhythmIndex] === key ? "next" : ""} onClick={() => hitRhythm(key)}><i>{key}</i><span>{key === "A" ? "The" : key === "S" ? "CRYS-tal" : key === "D" ? "GLOWED" : "NIGHT"}</span></button>)}</div>
-          </div>
-        );
+      }
       case "do-slingshot":
         return (
           <div className="slingshot-demo">
             <div className="arcade-topline"><span>VOCABULARY TARGET · SUPER BRIGHT</span><b>HIT: RADIANT</b><small>DRAG + RELEASE</small></div>
             <div className="sling-field">
+              <img className="sling-weapon-art" src={doActivityAssets.slingshot.slingshot} alt="" aria-hidden="true" />
+              <img className="sling-jiho-art" src={sling.shot ? doActivityAssets.slingshot.jihoRelease : doActivityAssets.slingshot.jihoAim} alt="" aria-hidden="true" />
               <svg className={`sling-trajectory ${sling.dragging || sling.shot || slingPullPower > 2 ? "aiming" : ""}`} viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
                 <line x1={slingAnchor.x} y1={slingAnchor.y} x2={slingAimEnd.x} y2={slingAimEnd.y} />
                 <circle cx={slingAimEnd.x} cy={slingAimEnd.y} r="2.4" />
@@ -978,17 +1339,18 @@ function ActivitySandbox({ item, phase }: { item: ActivityItem; phase: ActivityP
                   setSling((value) => ({ ...value, x: Math.max(4, Math.min(28, ((event.clientX - field.left) / field.width) * 100)), y: Math.max(60, Math.min(90, ((event.clientY - field.top) / field.height) * 100)) }));
                 }}
                 onPointerUp={() => {
-                  const shot = slingLanding;
+                  const clickShot = slingPullPower < 4;
+                  const shot = clickShot ? { x: 79, y: 25 } : slingLanding;
                   const hit = slingTargets.find((target) => Math.abs(target.x - shot.x) < 10 && Math.abs(target.y - shot.y) < 13);
                   setSling({ ...shot, dragging: false, shot: true });
-                  success(shot.x > 68 && shot.y < 48 ? "BULLSEYE · radiant 표적 적중! 강한 빛의 LV가 발생했습니다." : "표적을 빗나갔어요. 구슬을 왼쪽 아래로 더 길게 당겨보세요.");
+                  success(clickShot ? "CLICK SHOT · radiant 표적을 맞히는 예시 발사를 보여줬어요." : shot.x > 68 && shot.y < 48 ? "BULLSEYE · radiant 표적 적중! 강한 빛의 LV가 발생했습니다." : "표적을 빗나갔어요. 구슬을 왼쪽 아래로 더 길게 당겨보세요.");
                   window.setTimeout(() => success(hit?.word === "radiant" ? "BULLSEYE · radiant 표적 명중! 조준선과 같은 방향으로 정확히 발사됐어요." : "MISS · 구슬을 왼쪽 아래로 더 당겨 radiant 표적의 중심을 노려보세요."), 0);
                 }}
                 aria-label="Drag and release magic orb"
               >●</button>
               <div className="sling-anchor"><i /><i /></div>
             </div>
-            <p className="sling-hint">구슬을 왼쪽 아래로 당겼다가 놓아 위쪽의 <b>radiant</b> 표적을 맞히세요.</p>
+            <p className="sling-hint">구슬을 왼쪽 아래로 당겼다가 놓아 위쪽의 <b>radiant</b> 표적을 맞히세요. 드래그가 어렵다면 구슬을 한 번 클릭해 예시 발사를 볼 수 있어요.</p>
           </div>
         );
       case "do-fog-lab": {
@@ -1049,7 +1411,7 @@ function ActivitySandbox({ item, phase }: { item: ActivityItem; phase: ActivityP
                   aria-label="Drag purification orb toward the Fog Creature"
                 ><i />{selected && <span>{selected}</span>}</button>
                 <div className={`fog-enemy-unit ${fogBattleState === "victory" ? "purified" : ""}`}>
-                  <div className="fog-enemy-art"><i /></div>
+                  <div className="fog-enemy-art"><img src={doActivityAssets.fogLab.boss} alt="" aria-hidden="true" /><i /></div>
                   <span>{creature[1]} · {creature[0]}</span><small>{creature[2]}</small>
                 </div>
               </div>
@@ -1070,6 +1432,7 @@ function ActivitySandbox({ item, phase }: { item: ActivityItem; phase: ActivityP
                     {fogBattleState === "victory" && <button onClick={nextFogBattle}>다음 안개몬 배틀</button>}
                     <button onClick={returnToFogSetup}>새 배틀 설정</button>
                   </div>
+                  <RewardToast show={fogBattleState === "victory"} message="안개몬 정화 성공!" label="+200 LINGO" />
                 </div>
               )}
             </div>
@@ -1083,7 +1446,7 @@ function ActivitySandbox({ item, phase }: { item: ActivityItem; phase: ActivityP
             </div>
             <div className="fog-lab-body">
               <div className={`fog-specimen tone-${family.tone}`}>
-                <div className={`fog-creature-shape family-${fogCity} creature-${fogCreature}`}><i /><i /><b>{creature[0].slice(0, 1)}</b></div>
+                <div className={`fog-creature-shape family-${fogCity} creature-${fogCreature}`}><img src={doActivityAssets.fogLab.boss} alt="" aria-hidden="true" /><i /><i /><b>{creature[0].slice(0, 1)}</b></div>
                 <span>{creature[1]} · {creature[0]}</span><small>{creature[2]}</small><p>{creature[3]}</p>
                 <div className="fog-specimen-status"><i />{fogReady ? "출전 대상 지정 완료" : "반전 LV 분석 중"}</div>
               </div>
@@ -1137,9 +1500,13 @@ function ActivitySandbox({ item, phase }: { item: ActivityItem; phase: ActivityP
     }
   })();
   const cast = activityCastFor(item, phase);
+  const sandboxStyle: CSSProperties = phase === "do" && doActivityBackgroundByItem[item.id]
+    ? { backgroundImage: `url(${doActivityBackgroundByItem[item.id]})` }
+    : {};
+  const missionBrief = phase === "do" ? doMissionBriefs[item.id] : undefined;
 
   return (
-    <div className={`activity-sandbox sandbox-${phase} scene-${item.id} ${feedback ? "scene-reacting" : ""}`}>
+    <div className={`activity-sandbox sandbox-${phase} scene-${item.id} ${feedback ? "scene-reacting" : ""}`} style={sandboxStyle}>
       <div className="sandbox-world-shade" />
       <div className="gameplay-ornaments" aria-hidden="true">
         <i className="magic-ring ring-a" />
@@ -1152,6 +1519,20 @@ function ActivitySandbox({ item, phase }: { item: ActivityItem; phase: ActivityP
         <span><i>{phase === "watch" ? "W" : phase === "do" ? "D" : "T"}</i><b>{scene.location}</b><small>{scene.objective}</small></span>
         <div className="scene-signal"><small>{phase === "watch" ? "LESSON SIGNAL" : phase === "do" ? "MISSION SIGNAL" : "UNDERSTANDING"}</small><b>{feedback ? "ACTIVE" : "READY"}</b><i><em style={{ width: feedback ? "82%" : "38%" }} /></i></div>
       </div>
+      {missionBrief && (
+        <aside className="scene-play-brief" aria-label="Activity guide">
+          <span>MISSION GUIDE</span>
+          <b>{missionBrief.title}</b>
+          <p>{missionBrief.mission}</p>
+          <small>{missionBrief.control}</small>
+        </aside>
+      )}
+      {missionBrief && (
+        <aside className="scene-pix-hint-card" aria-label="Pix hint">
+          <i>PIX</i>
+          <span>{missionBrief.pix}</span>
+        </aside>
+      )}
       <div className={`activity-cast ${cast.className}`} aria-hidden="true">
         <img className="cast-main" src={cast.main} alt={cast.mainAlt} />
         {cast.enemy && <img className="cast-enemy" src={cast.enemy} alt="Fog creature enemy" />}
@@ -1174,6 +1555,7 @@ function ActivitySandbox({ item, phase }: { item: ActivityItem; phase: ActivityP
 function ActivityLab({ navigate }: { navigate: (screen: Screen) => void }) {
   const [phase, setPhase] = useState<ActivityPhase>("watch");
   const [expanded, setExpanded] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const [selection, setSelection] = useState<Record<ActivityPhase, string>>({
     watch: activityLibrary.watch[0].id,
     do: activityLibrary.do[0].id,
@@ -1186,7 +1568,12 @@ function ActivityLab({ navigate }: { navigate: (screen: Screen) => void }) {
     learning: phase === "watch" ? "새 개념을 보고 듣고 이해합니다." : phase === "teach" ? "배운 내용을 설명하며 이해를 완성합니다." : "배운 영어를 실제 상황에 적용합니다.",
   };
   useEffect(() => {
-    const close = (event: KeyboardEvent) => event.key === "Escape" && setExpanded(false);
+    const close = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setExpanded(false);
+        setDetailsOpen(false);
+      }
+    };
     window.addEventListener("keydown", close);
     document.body.classList.toggle("activity-focus-open", expanded);
     return () => {
@@ -1194,11 +1581,11 @@ function ActivityLab({ navigate }: { navigate: (screen: Screen) => void }) {
       document.body.classList.remove("activity-focus-open");
     };
   }, [expanded]);
+
+  useEffect(() => {
+    setDetailsOpen(false);
+  }, [phase, selected.id]);
   const selectPhase = (nextPhase: ActivityPhase) => {
-    if (nextPhase === "teach") {
-      navigate("teach");
-      return;
-    }
     setPhase(nextPhase);
   };
   const handlePreviewAction = () => {
@@ -1210,7 +1597,10 @@ function ActivityLab({ navigate }: { navigate: (screen: Screen) => void }) {
   };
 
   return (
-    <main className={`page activity-lab-page ${expanded ? "activity-focus-mode" : ""}`}>
+    <main
+      className={`page activity-lab-page activity-${selected.id} ${expanded ? "activity-focus-mode" : ""} ${expanded && detailsOpen ? "activity-details-open" : ""}`}
+      data-bgm-context={`${phase}:${selected.id}`}
+    >
       <div className="activity-lab-heading">
         <div><span className="kicker">Activity Atlas · Prototype Gallery</span><h1>One lesson, many ways to learn.</h1><p>기획안의 활동 유형을 단계별로 살펴보고, 각 입력 방식이 어떻게 다른 경험이 되는지 직접 체험해보세요.</p></div>
         <Button variant="ghost" onClick={() => navigate("home")}>Back to Home</Button>
@@ -1324,36 +1714,390 @@ function DailyIntro({ navigate }: { navigate: (screen: Screen) => void }) {
   );
 }
 
-function WatchScreen({ navigate }: { navigate: (screen: Screen) => void }) {
-  const [scene, setScene] = useState(0);
-  const [score, setScore] = useState<number | null>(null);
-  const data = watchScenes[scene];
-  const isLast = scene === watchScenes.length - 1;
-  const next = () => {
-    setScore(null);
-    if (isLast) navigate("do-hub");
-    else setScene((value) => value + 1);
+type WatchPixMessage = {
+  id: string;
+  role: "student" | "pix";
+  text: string;
+  detail?: string;
+  source?: WatchPixResponse["source"];
+};
+
+function requestedWatchExampleCount(question: string) {
+  const digitMatch = question.match(/(\d+)\s*(개|문장|sentences?|examples?)/i);
+  if (digitMatch) return Math.max(1, Math.min(6, Number(digitMatch[1])));
+  if (/세\s*개|세\s*문장|three/i.test(question)) return 3;
+  if (/두\s*개|두\s*문장|two/i.test(question)) return 2;
+  return 3;
+}
+
+function wantsWatchExamples(question: string) {
+  return /예시|예문|문장|활용|sentence|example/i.test(question);
+}
+
+function formatWatchExamples(examples: string[]) {
+  return examples.map((example, index) => `${index + 1}. ${example}`).join("\n");
+}
+
+function buildLocalWatchPixResponse(lecture: WatchLecture, question: string): WatchPixResponse {
+  const lowerQuestion = question.toLowerCase();
+  const count = requestedWatchExampleCount(question);
+
+  if (lowerQuestion.includes("near") && wantsWatchExamples(question)) {
+    const examples = [
+      "There is a park near my house.",
+      "The library is near the school.",
+      "I sit near the window in class.",
+      "The bus stop is near the hospital.",
+      "My bag is near the desk.",
+      "The bakery is near the bank.",
+    ].slice(0, count);
+    return {
+      answer: `near를 활용한 예시 문장 ${examples.length}개예요.\n${formatWatchExamples(examples)}`,
+      quickCheck: "near는 한 기준점 가까이에 있을 때 씁니다.",
+      followUp: "직접 하나 더 만들면: The ___ is near the ___.",
+      source: "local",
+    };
+  }
+
+  if (lowerQuestion.includes("between") && wantsWatchExamples(question)) {
+    const examples = [
+      "The bank is between the school and the hospital.",
+      "I sit between Mina and Joon.",
+      "The cat is between the boxes.",
+      "The park is between the library and the museum.",
+      "My pencil is between two books.",
+      "The station is between City Hall and the market.",
+    ].slice(0, count);
+    return {
+      answer: `between을 활용한 예시 문장 ${examples.length}개예요.\n${formatWatchExamples(examples)}`,
+      quickCheck: "between은 두 기준점 사이에 있을 때 씁니다.",
+      followUp: "직접 하나 더 만들면: The ___ is between ___ and ___.",
+      source: "local",
+    };
+  }
+
+  if (lowerQuestion.includes("on") && wantsWatchExamples(question)) {
+    const examples = [
+      "The book is on the desk.",
+      "My sister puts a magazine on the box.",
+      "There is a cup on the table.",
+      "The picture is on the wall.",
+      "My phone is on the chair.",
+      "The sticker is on the notebook.",
+    ].slice(0, count);
+    return {
+      answer: `on을 활용한 예시 문장 ${examples.length}개예요.\n${formatWatchExamples(examples)}`,
+      quickCheck: "on은 표면 위에 닿아 있을 때 씁니다.",
+      followUp: "직접 하나 더 만들면: The ___ is on the ___.",
+      source: "local",
+    };
+  }
+
+  if (lowerQuestion.includes("between") || question.includes("사이")) {
+    return {
+      answer: "between은 두 장소나 두 대상의 가운데를 말할 때 써요. 기준점이 두 개 보이면 먼저 between을 떠올리면 됩니다.",
+      quickCheck: "두 기준점 사이 = between",
+      followUp: `오늘 문장으로 다시 보면: ${lecture.keySentence}`,
+      source: "local",
+    };
+  }
+
+  if (lowerQuestion.includes("near") || question.includes("근처") || question.includes("가까")) {
+    return {
+      answer: "near는 정확히 사이가 아니라 가까운 곳에 있다는 뜻이에요. 기준 장소가 하나이고 주변에 있으면 near가 자연스럽습니다.",
+      quickCheck: "한 기준점 가까이 = near",
+      followUp: "예: There is a park near Tiger's apartment.",
+      source: "local",
+    };
+  }
+
+  if (lowerQuestion.includes("on") || question.includes("위")) {
+    return {
+      answer: "on은 표면 위에 닿아 있을 때 사용해요. 책상 위, 상자 위처럼 아래에서 받쳐주는 느낌을 생각하면 됩니다.",
+      quickCheck: "표면에 닿아 있음 = on",
+      followUp: "예: My sister puts a magazine on the box.",
+      source: "local",
+    };
+  }
+
+  return {
+    answer: `${lecture.title}의 핵심은 장면이나 교재에서 위치 단서를 먼저 찾는 거예요. 두 대상 사이인지, 한 장소 근처인지, 표면 위인지 확인하면 전치사를 고르기 쉬워집니다.`,
+    quickCheck: lecture.objective,
+    followUp: `지금 강의의 기준 문장은 "${lecture.keySentence}"예요.`,
+    source: "local",
   };
+}
+
+function initialWatchPixMessage(lecture: WatchLecture): WatchPixMessage {
+  return {
+    id: `${lecture.id}-intro`,
+    role: "pix",
+    text: lecture.pixPrompt,
+    detail: "궁금한 점이 생기면 Pix를 눌러 바로 질문할 수 있어요.",
+    source: "local",
+  };
+}
+
+function WatchScreen({ navigate }: { navigate: (screen: Screen) => void }) {
+  const [activeLectureId, setActiveLectureId] = useState<WatchLecture["id"]>(watchScenes[0].id);
+  const [bookPage, setBookPage] = useState(0);
+  const [pixOpen, setPixOpen] = useState(false);
+  const [pixQuestion, setPixQuestion] = useState("");
+  const [pixMessages, setPixMessages] = useState<WatchPixMessage[]>(() => [initialWatchPixMessage(watchScenes[0])]);
+  const [pixLoading, setPixLoading] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const mediaFrameRef = useRef<HTMLDivElement>(null);
+
+  const lecture = watchScenes.find((item) => item.id === activeLectureId) ?? watchScenes[0];
+  const activeIndex = Math.max(0, watchScenes.findIndex((item) => item.id === lecture.id));
+  const activeBookPage = lecture.bookPages?.[bookPage] ?? lecture.bookPages?.[0];
+  const masterLectureLine = lecture.masterLines?.[bookPage]
+    ?? lecture.captions[bookPage % lecture.captions.length]
+    ?? lecture.description;
+
+  useEffect(() => {
+    setBookPage(0);
+    setPixQuestion("");
+    setPixLoading(false);
+    setPixMessages([initialWatchPixMessage(lecture)]);
+  }, [lecture]);
+
+  const askPix = async (question = pixQuestion) => {
+    const trimmed = question.trim();
+    if (!trimmed || pixLoading) return;
+
+    setPixOpen(true);
+    setPixQuestion("");
+    setPixLoading(true);
+    setPixMessages((messages) => [
+      ...messages,
+      { id: `student-${Date.now()}`, role: "student", text: trimmed },
+    ]);
+
+    try {
+      const response = await sendWatchPixQuestion({
+        lectureId: lecture.id,
+        lectureTitle: lecture.title,
+        instructor: lecture.instructor,
+        objective: lecture.objective,
+        keySentence: lecture.keySentence,
+        captions: lecture.captions,
+        question: trimmed,
+      });
+      setPixMessages((messages) => [
+        ...messages,
+        {
+          id: `pix-${Date.now()}`,
+          role: "pix",
+          text: response.answer,
+          detail: `${response.quickCheck} ${response.followUp}`,
+          source: response.source,
+        },
+      ]);
+    } catch {
+      const response = buildLocalWatchPixResponse(lecture, trimmed);
+      setPixMessages((messages) => [
+        ...messages,
+        {
+          id: `pix-${Date.now()}`,
+          role: "pix",
+          text: response.answer,
+          detail: `${response.quickCheck} ${response.followUp}`,
+          source: response.source,
+        },
+      ]);
+    } finally {
+      setPixLoading(false);
+    }
+  };
+
+  const openVideoFullscreen = async () => {
+    const video = videoRef.current;
+    const target = video ?? mediaFrameRef.current;
+    if (!target) return;
+
+    try {
+      await target.requestFullscreen();
+      await video?.play().catch(() => undefined);
+    } catch {
+      setPixOpen(true);
+      setPixMessages((messages) => [
+        ...messages,
+        {
+          id: `pix-fullscreen-${Date.now()}`,
+          role: "pix",
+          text: "브라우저가 전체화면을 바로 열지 못했어요. 영상 오른쪽 아래의 기본 전체화면 아이콘을 눌러도 됩니다.",
+          source: "local",
+        },
+      ]);
+    }
+  };
+
   return (
-    <main className="page visual-novel-page">
-      <div className="scene-topline"><span>WATCH · Visual Lesson</span><b>Scene {scene + 1} / {watchScenes.length}</b></div>
-      <div className="visual-scene classroom">
-        <Character name="Gram" role="Master of Grammia" />
-        <div className="lesson-focus">
-          <div className="magic-board">
-            <small>MAGIC COORDINATE</small>
-            {data.sentence ? <h2>{data.sentence}</h2> : <div className="coordinate-art"><i /><i /><i /></div>}
-            <p>{data.support}</p>
-          </div>
-          {data.sentence && scene < 5 && (
-            <button className="mic-button" onClick={() => setScore(82)}>
-              <span>●</span>{score ? `Pronunciation Check ${score}%` : "문장 따라 읽기"}
-            </button>
-          )}
+    <main className="page watch-studio-page">
+      <div className="watch-studio-heading">
+        <div>
+          <span className="kicker">WATCH · AI Lecture Studio</span>
+          <h1>강의를 보고, 궁금하면 Pix에게 바로 물어보세요.</h1>
+          <p>실제 강의, VR 캐릭터 강의, 도시 MASTER 교재 강의 중 하나를 선택해 오늘 표현을 이해합니다.</p>
         </div>
-        <Character name="Pix" role="Magic guide" side="right" />
-        <DialogueBox speaker={data.speaker} text={data.text} onNext={next} button={isLast ? "Go to Do Activities" : "다음 대사"} />
+        <div className="watch-top-actions">
+          <Button variant="ghost" onClick={() => navigate("course-select")}>과정표로 돌아가기</Button>
+          <Button onClick={() => navigate("do-hub")}>DO 미션으로 이동</Button>
+        </div>
       </div>
+
+      <section className="watch-studio-layout">
+        <aside className="watch-lecture-list" aria-label="Watch lecture types">
+          <span>강의 선택</span>
+          {watchScenes.map((item, index) => (
+            <button
+              key={item.id}
+              className={item.id === lecture.id ? "active" : ""}
+              onClick={() => setActiveLectureId(item.id)}
+              aria-pressed={item.id === lecture.id}
+            >
+              <i>{String(index + 1).padStart(2, "0")}</i>
+              <b>{item.title}</b>
+              <small>{item.format}</small>
+            </button>
+          ))}
+          <div className="watch-objective-card">
+            <small>오늘의 목표</small>
+            <b>{lecture.objective}</b>
+            <p>{lecture.keySentence}</p>
+          </div>
+        </aside>
+
+        <section className={`watch-main-stage watch-${lecture.id}`}>
+          <div className="watch-stage-topline">
+            <span>{lecture.label}</span>
+            <b>{lecture.instructor}</b>
+            <small>{activeIndex + 1} / {watchScenes.length}</small>
+          </div>
+
+          <div className="watch-media-frame" ref={mediaFrameRef}>
+            {lecture.embedSrc ? (
+              <>
+                <iframe
+                  key={lecture.embedSrc}
+                  className="watch-lecture-video watch-youtube-embed"
+                  src={lecture.embedSrc}
+                  title={lecture.title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+                <button className="watch-fullscreen-button" onClick={openVideoFullscreen}>
+                  전체화면
+                </button>
+              </>
+            ) : lecture.videoSrc ? (
+              <>
+                <video
+                  key={lecture.videoSrc}
+                  ref={videoRef}
+                  className="watch-lecture-video"
+                  src={lecture.videoSrc}
+                  controls
+                  playsInline
+                  preload="metadata"
+                />
+                <button className="watch-fullscreen-button" onClick={openVideoFullscreen}>
+                  전체화면
+                </button>
+              </>
+            ) : (
+              <div className="watch-master-board">
+                <div className="watch-master-copy watch-master-speaker">
+                  <span>MASTER LESSON</span>
+                  <b>{lecture.instructor}</b>
+                  <img className="watch-master-character" src={sceneAssets.characters.gram} alt={`${lecture.instructor} 강사 캐릭터`} />
+                  <div className="watch-master-speech">
+                    <strong>{lecture.instructor}</strong>
+                    <p>{masterLectureLine}</p>
+                  </div>
+                </div>
+                {activeBookPage && <img className="watch-master-page-image" src={activeBookPage.src} alt={`${lecture.instructor} ${activeBookPage.label}`} />}
+                <div className="watch-page-switcher" aria-label="Textbook pages">
+                  {lecture.bookPages?.map((page, index) => (
+                    <button
+                      key={page.label}
+                      className={bookPage === index ? "active" : ""}
+                      onClick={() => setBookPage(index)}
+                      aria-label={`${page.label} 보기`}
+                    >
+                      {index + 1}
+                    </button>
+                  ))}
+                </div>
+                <div className="watch-master-subtitle" aria-live="polite">
+                  <b>{lecture.instructor}</b>
+                  <span>{masterLectureLine}</span>
+                </div>
+              </div>
+            )}
+
+            <button className={`watch-pix-button ${pixOpen ? "active" : ""}`} onClick={() => setPixOpen((open) => !open)}>
+              <img src={sceneAssets.characters.pixhappy} alt="Pix" />
+              <span>ASK PIX</span>
+            </button>
+          </div>
+
+          <div className="watch-caption-panel">
+            <div>
+              <span>{lecture.format}</span>
+              <h2>{lecture.title}</h2>
+              <p>{lecture.description}</p>
+            </div>
+            <ul>
+              {lecture.captions.map((caption) => <li key={caption}>{caption}</li>)}
+            </ul>
+          </div>
+        </section>
+
+        <aside className={`watch-pix-ai-panel ${pixOpen ? "open" : ""}`} aria-label="Pix AI helper">
+          <header>
+            <img src={sceneAssets.characters.pix} alt="Pix AI helper" />
+            <div>
+              <span>PIX · Watch AI</span>
+              <b>{pixLoading ? "생각하는 중..." : "강의 중 질문 도우미"}</b>
+            </div>
+            <button className="watch-pix-close" onClick={() => setPixOpen(false)} aria-label="Pix 도움 닫기">×</button>
+          </header>
+
+          <div className="watch-pix-thread" aria-live="polite">
+            {pixMessages.map((message) => (
+              <div className={`watch-pix-message ${message.role}`} key={message.id}>
+                <b>{message.role === "pix" ? "Pix" : "You"}</b>
+                <p>{message.text}</p>
+                {message.detail && <small>{message.detail}</small>}
+                {message.source === "openai" && <em>AI</em>}
+              </div>
+            ))}
+            {pixLoading && <div className="watch-pix-message pix loading"><b>Pix</b><p>강의 내용을 다시 살펴보고 있어요...</p></div>}
+          </div>
+
+          <div className="watch-quick-questions">
+            {lecture.quickQuestions.map((question) => (
+              <button key={question} onClick={() => askPix(question)} disabled={pixLoading}>
+                {question}
+              </button>
+            ))}
+          </div>
+
+          <form className="watch-pix-form" onSubmit={(event) => {
+            event.preventDefault();
+            void askPix();
+          }}>
+            <textarea
+              value={pixQuestion}
+              onChange={(event) => setPixQuestion(event.target.value)}
+              placeholder="궁금한 점을 적어보세요. 예: between이랑 near는 뭐가 달라?"
+            />
+            <button type="submit" disabled={!pixQuestion.trim() || pixLoading}>Pix에게 질문</button>
+          </form>
+        </aside>
+      </section>
     </main>
   );
 }
@@ -1371,7 +2115,11 @@ function DoHub({
     <main className="page do-hub-page">
       <div className="page-heading">
         <div><span className="kicker">DO · Field Practice</span><h1>오늘 배운 표현을 써보자</h1><p>정확한 영어를 선택하면 Grammia의 길이 다시 밝아져!</p></div>
-        <div className="completion-ring"><b>{completed.length}</b><span>/ {doHubMissions.length} restored</span></div>
+        <div className="do-hub-actions">
+          <Button variant="ghost" onClick={() => navigate("course-select")}>과정표로 돌아가기</Button>
+          <Button variant="ghost" onClick={() => navigate("home")}>홈으로 돌아가기</Button>
+          <div className="completion-ring"><b>{completed.length}</b><span>/ {doHubMissions.length} restored</span></div>
+        </div>
       </div>
       <div className="mission-board">
         <section className={`mission-stage mission-${active.id}`}>
@@ -1426,6 +2174,7 @@ function FogBattleScene({
   ];
   const correct = selected === data.answer;
   const hp = Math.round(((sentenceQuestions.length - question - (correct ? 1 : 0)) / sentenceQuestions.length) * 100);
+  const finalPurified = correct && question === sentenceQuestions.length - 1;
   const choose = (choice: string) => {
     setSelected(choice);
     setReveal(true);
@@ -1449,7 +2198,7 @@ function FogBattleScene({
       <div className="battle-hud"><Button variant="ghost" onClick={() => navigate("do-hub")}>Exit Mission</Button><span>DO-B2 · Sentence Purify</span><b>Jiho · LV 12</b></div>
       <div className="battle-stage">
         <img className="battle-actor battle-jiho" src={sceneAssets.characters.jiho} alt="Jiho casting a spell" />
-        <img className="battle-actor battle-fogmon" src={sceneAssets.characters.fogmon} alt="Fog creature" />
+        <img className={`battle-actor battle-fogmon ${finalPurified ? "is-purified" : ""}`} src={finalPurified ? sceneAssets.characters.fogmonPurified : sceneAssets.characters.fogmon} alt={finalPurified ? "Purified fog creature" : "Fog creature"} />
         <img className="battle-actor battle-pix-img" src={sceneAssets.characters.pix} alt="Pix giving a hint" />
         <div className="battle-spell-beam" aria-hidden="true"><i /><i /><i /><i /></div>
         <div className="fog-creature"><div className="fog-core"><span>?</span></div><i /><i /><i /></div>
@@ -1470,6 +2219,15 @@ function FogBattleScene({
           <ChoiceList choices={data.choices} onChoose={choose} selected={selected} answer={data.answer} reveal={reveal} />
           {correct && <Button onClick={next}>{question === sentenceQuestions.length - 1 ? "Complete Purification" : "Next Spell"}</Button>}
         </Panel>
+        {finalPurified && (
+          <div className="battle-purified-art" role="status" aria-live="polite">
+            <img src={doActivityAssets.sentencePurify.stonePurified} alt="" aria-hidden="true" />
+            <span>
+              <b>Purified!</b>
+              <small>Sentence stone restored</small>
+            </span>
+          </div>
+        )}
         {reveal && selected === data.answer && <SuccessBurst label="PURIFIED" />}
       </div>
     </main>
@@ -1488,23 +2246,24 @@ function RunePuzzle({
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const data = runePuzzles[puzzle];
+  const resetRune = () => {
+    setSelected([]);
+    setStatus("idle");
+    setMessage("");
+  };
+  const advanceRune = () => {
+    if (puzzle === runePuzzles.length - 1) {
+      complete();
+      navigate("do-hub");
+      return;
+    }
+    setPuzzle((value) => value + 1);
+    resetRune();
+  };
   const check = () => {
     if (selected.join(" ") === data.answer) {
       setStatus("success");
       setMessage("룬 문장이 복원되었어!");
-      if (puzzle === runePuzzles.length - 1) {
-        setTimeout(() => {
-          complete();
-          navigate("do-hub");
-        }, 900);
-      } else {
-        setTimeout(() => {
-          setPuzzle((value) => value + 1);
-          setSelected([]);
-          setStatus("idle");
-          setMessage("");
-        }, 800);
-      }
     } else {
       setStatus("error");
       setMessage("룬의 순서를 다시 살펴봐. 주어부터 시작해보자.");
@@ -1534,6 +2293,12 @@ function RunePuzzle({
             </div>
           </div>
           <div className="puzzle-count">RUNE SEQUENCE {puzzle + 1}</div>
+          <div className={`rune-restoration-visual ${status === "success" ? "is-restored" : ""}`} aria-hidden="true">
+            <img className="rune-restoration-door" src={status === "success" ? doActivityAssets.runePuzzle.doorOpen : doActivityAssets.runePuzzle.doorLocked} alt="" />
+            {status === "success" && <img className="rune-restoration-light" src={doActivityAssets.runePuzzle.doorLight} alt="" />}
+            {status === "success" && <img className="rune-restoration-snap" src={doActivityAssets.runePuzzle.runeSnap} alt="" />}
+            <span>{status === "success" ? "RUNE GATE RESTORED" : "RESTORE THE RUNE GATE"}</span>
+          </div>
           <div className="rune-answer">
             {data.blocks.map((_, index) => selected[index]
               ? <button key={`${selected[index]}-${index}`} onClick={() => { setStatus("idle"); setSelected(selected.filter((__, selectedIndex) => selectedIndex !== index)); }}>{selected[index]}</button>
@@ -1541,7 +2306,12 @@ function RunePuzzle({
           </div>
           <div className="rune-blocks">{data.blocks.filter((word) => !selected.includes(word)).map((word) => <button key={word} onClick={() => { setStatus("idle"); setSelected([...selected, word]); }}>{word}</button>)}</div>
           {message && <p className={`puzzle-message ${status}`} role="status">{message}</p>}
-          <div className="center-actions"><Button variant="ghost" onClick={() => { setSelected([]); setStatus("idle"); setMessage(""); }}>Reset</Button><Button onClick={check} disabled={!selected.length || status === "success"}>Activate Rune</Button></div>
+          <div className="center-actions">
+            <Button variant="ghost" onClick={resetRune}>Reset</Button>
+            {status === "success"
+              ? <Button onClick={advanceRune}>{puzzle === runePuzzles.length - 1 ? "Complete Rune Gate" : "Next Rune"}</Button>
+              : <Button onClick={check} disabled={!selected.length}>Activate Rune</Button>}
+          </div>
         </section>
         {status === "success" && <SuccessBurst label="RUNE RESTORED" />}
       </div>
@@ -1560,6 +2330,8 @@ function NpcMission({
   const [selected, setSelected] = useState("");
   const data = npcQuestions[question];
   const correct = selected === data.answer;
+  const objective = question === 0 ? "Find the boy" : "Find the park";
+  const objectiveHint = question === 0 ? "Use between to describe two landmarks." : "Use near to describe a close landmark.";
   const next = () => {
     if (!correct) return;
     if (question === npcQuestions.length - 1) {
@@ -1571,32 +2343,59 @@ function NpcMission({
     }
   };
   return (
-    <main className="page visual-novel-page">
-      <div className="scene-topline"><span>DO-N1 · NPC Mission Talk</span><b>Mission {question + 1} / 2</b></div>
-      <div className={`visual-scene town ${selected ? correct ? "answer-correct" : "answer-wrong" : ""}`}>
-        <Character name="Milo" role="Lost citizen" />
-        <div className="npc-objective">
-          <span>FIELD REQUEST · MILO</span>
-          <b>{question === 0 ? "Find the boy" : "Find the park"}</b>
-          <small>{question === 0 ? "Use between to describe two landmarks." : "Use near to describe a close landmark."}</small>
-          <div className="locator-signal"><i /><i /><i /><span>{correct ? "ROUTE FOUND" : "SCANNING ROUTE"}</span></div>
+    <main className={`npc-mission-page ${selected ? correct ? "answer-correct" : "answer-wrong" : ""}`}>
+      <div className="npc-mission-hud">
+        <span>DO-N1 · NPC Mission Talk</span>
+        <b>Mission {question + 1} / 2</b>
+        <Button variant="ghost" onClick={() => navigate("do-hub")}>Exit Mission</Button>
+      </div>
+      <section className="npc-mission-stage">
+        <div className="npc-mission-visual">
+          <img className="npc-mission-milo" src={doActivityAssets.npcMissionTalk.miloConfused} alt="Milo asking for directions" />
+          <img className="npc-mission-sign" src={doActivityAssets.npcMissionTalk.routeSignpost} alt="" aria-hidden="true" />
+          <img className="npc-mission-map" src={doActivityAssets.npcMissionTalk.mapFragment} alt="" aria-hidden="true" />
+          <img className="npc-mission-path" src={doActivityAssets.npcMissionTalk.routeLightPath} alt="" aria-hidden="true" />
+          <div className="npc-mission-objective">
+            <span>FIELD REQUEST · MILO</span>
+            <b>{objective}</b>
+            <small>{objectiveHint}</small>
+            <div className="locator-signal"><i /><i /><i /><span>{correct ? "ROUTE FOUND" : "SCANNING ROUTE"}</span></div>
+          </div>
         </div>
-        <div className="mission-dialogue npc-console">
-          <div className="npc-speaker-card">
-            <img src={sceneAssets.characters.milo} alt="" aria-hidden="true" />
+        <div className="npc-mission-panel">
+          <div className="npc-mission-speaker">
+            <img src={doActivityAssets.npcMissionTalk.miloConfused} alt="" aria-hidden="true" />
             <div>
               <span>Milo's Request</span>
               <b>{question === 0 ? "길을 잃은 아이를 찾아주세요." : "공원이 어디인지 알려주세요."}</b>
             </div>
           </div>
-          <DialogueBox speaker="Milo" text={correct ? data.response : data.line} />
-          <ChoiceList choices={data.choices} onChoose={setSelected} selected={selected} answer={data.answer} reveal={Boolean(selected)} />
-          {selected && <div className={`feedback ${correct ? "success" : "error"}`} role="status">{correct ? "Pix: 좋아! 상황에 맞는 문장을 골랐어." : "Pix: 위치 관계를 다시 확인해보자."}</div>}
-          <Button onClick={next} disabled={!correct}>{question === 1 ? "Complete Mission" : "Continue"}</Button>
+          <div className="npc-mission-dialogue">
+            <span>Milo</span>
+            <p>{correct ? data.response : data.line}</p>
+          </div>
+          <div className="npc-choice-grid">
+            {data.choices.map((choice, index) => (
+              <button
+                key={choice}
+                className={`${selected === choice ? (choice === data.answer ? "correct" : "wrong") : ""}`}
+                onClick={() => setSelected(choice)}
+              >
+                <i>{String.fromCharCode(65 + index)}</i>
+                <span>{choice}</span>
+              </button>
+            ))}
+          </div>
+          <div className={`npc-mission-feedback ${selected ? (correct ? "success" : "error") : ""}`} role="status">
+            <img src={sceneAssets.characters.pix} alt="" aria-hidden="true" />
+            <p>{selected ? (correct ? "좋아요! 상황에 맞는 위치 표현으로 안내했어요." : "위치 관계를 다시 확인해보세요. 두 장소 사이인지, 가까운 곳인지가 단서예요.") : "Milo의 질문을 읽고 오늘 배운 위치 표현으로 가장 자연스러운 안내 문장을 고르세요."}</p>
+          </div>
+          <div className="npc-mission-actions">
+            <Button onClick={next} disabled={!correct}>{question === 1 ? "Complete Mission" : "Continue"}</Button>
+          </div>
         </div>
-        <Character name="Pix" role="Mission guide" side="right" />
-        {correct && <SuccessBurst label="ROUTE FOUND" />}
-      </div>
+        {correct && <RewardToast show message="Milo 안내 성공!" label="+160 LINGO" />}
+      </section>
     </main>
   );
 }
@@ -1614,6 +2413,7 @@ function CultistGrammarMission({
   const [talked, setTalked] = useState<string[]>([]);
   const [selectedId, setSelectedId] = useState("");
   const [phase, setPhase] = useState<CultistMissionPhase>("selecting");
+  const [guideOpen, setGuideOpen] = useState(false);
   const data = cultistGrammarCases[round];
   const selectedNpc = data.npcs.find((npc) => npc.id === selectedId);
   const allTalked = talked.length === data.npcs.length;
@@ -1621,13 +2421,7 @@ function CultistGrammarMission({
   const progress = ((round + (isCorrect && phase !== "hammerAttack" ? 1 : 0)) / cultistGrammarCases.length) * 100;
 
   const imageForNpc = (npc: CultistNpc) => {
-    if (selectedId !== npc.id) return cultistAssets.hidden;
-    if (phase === "wrongAccused") {
-      return npc.reactionType === "femaleInnocent" ? cultistAssets.innocentFemale : cultistAssets.innocentMale;
-    }
-    if (phase === "correctReveal") return cultistAssets.cultistIdle;
-    if (phase === "cultistFleeing") return cultistAssets.cultistFleeing;
-    return cultistAssets.hidden;
+    return cultistNpcImage(npc, selectedId === npc.id, phase);
   };
 
   const listenToNpc = (npc: CultistNpc) => {
@@ -1662,7 +2456,19 @@ function CultistGrammarMission({
     setTalked([]);
     setSelectedId("");
     setPhase("selecting");
+    setGuideOpen(false);
   };
+
+  const canAccuse = allTalked && phase === "selecting";
+  const pixPrompt = phase === "hammerAttack"
+    ? "문법 신호를 확인하는 중입니다."
+    : phase === "wrongAccused"
+      ? "이 후보는 올바른 문장을 말했어요. 다시 비교해보세요."
+      : phase === "correctReveal" || phase === "cultistFleeing"
+        ? "정답 문장과 올바른 문장을 비교해보세요."
+        : canAccuse
+          ? "세 문장을 모두 확인했어요. 규칙이 깨진 후보를 지목하세요."
+          : "A, B, C 후보를 눌러 문장을 먼저 확인하세요.";
 
   return (
     <main className={`cultist-mission-page phase-${phase}`}>
@@ -1672,68 +2478,69 @@ function CultistGrammarMission({
         <b>Round {round + 1} / {cultistGrammarCases.length}</b>
       </div>
       <section className="cultist-arena">
-        <div className="cultist-top-panel">
-          <div>
-            <span>Grammar Investigation</span>
-            <h1>사이비 신도를 찾아라</h1>
-            <p>{data.mission}</p>
+        <div className="cultist-atlas-game cultist-learning-game">
+          <header className="cultist-atlas-header">
+            <div>
+              <span>Grammar Investigation · Round {round + 1}</span>
+              <h3>사이비 신도를 찾아라</h3>
+              <p>{data.mission}</p>
+            </div>
+            <div className="cultist-atlas-progress">
+              <ProgressBar value={progress} label="Cultist exposed" tone="mint" />
+              <small>문장 확인 {talked.length} / {data.npcs.length}</small>
+            </div>
+          </header>
+          <button className="cultist-guide-toggle" type="button" onClick={() => setGuideOpen((open) => !open)}>
+            {guideOpen ? "게임 방법 접기" : "게임 방법 보기"}
+          </button>
+          <div className={`cultist-atlas-rule ${guideOpen ? "is-open" : "is-collapsed"}`}>
+            <b>PIX GRAMMAR CLUE</b>
+            <span>{data.clue}</span>
+            <em>{allTalked ? "이제 의심 후보를 지목하세요." : "먼저 모든 문장을 확인하세요."}</em>
           </div>
-          <div className="cultist-progress">
-            <ProgressBar value={progress} label="Cultist exposed" tone="mint" />
-            <small>문장 확인 {talked.length} / {data.npcs.length}</small>
+          <div className={`cultist-atlas-brief ${guideOpen ? "is-open" : "is-collapsed"}`} aria-live="polite">
+            <span className={talked.length > 0 ? "done" : ""}>1. 문장 수집</span>
+            <span className={allTalked ? "done" : ""}>2. 규칙 비교</span>
+            <span className={selectedId ? "done" : ""}>3. 후보 지목</span>
+            <b>{pixPrompt}</b>
           </div>
-        </div>
-
-        <aside className="cultist-clue-card">
-          <span>PIX GRAMMAR CLUE</span>
-          <b>{data.title}</b>
-          <p>{data.clue}</p>
-          <small>{allTalked ? "이제 문법이 깨진 후보를 선택하세요." : "NPC를 한 명씩 눌러 문장을 먼저 확인하세요."}</small>
-        </aside>
-
-        <div className="cultist-npc-row">
-          {data.npcs.map((npc, index) => {
-            const hasTalked = talked.includes(npc.id);
-            const isSelected = selectedId === npc.id;
-            const canAccuse = allTalked && phase === "selecting";
-            return (
-              <article key={npc.id} className={`cultist-npc-card ${hasTalked ? "has-talked" : ""} ${isSelected ? "selected" : ""} ${isSelected && npc.isCultist && phase !== "hammerAttack" ? "revealed-cultist" : ""}`}>
-                <button className="cultist-npc-portrait" onClick={() => (canAccuse ? accuseNpc(npc) : listenToNpc(npc))}>
-                  <img src={imageForNpc(npc)} alt={`${npc.label} portrait`} />
-                  {isSelected && phase === "hammerAttack" && <img className="cultist-hammer-hero" src={cultistAssets.hammerHero} alt="" aria-hidden="true" />}
-                </button>
-                <div className="cultist-npc-info">
-                  <span>{String.fromCharCode(65 + index)}</span>
+          <div className="cultist-atlas-row">
+            {data.npcs.map((npc, index) => {
+              const hasTalked = talked.includes(npc.id);
+              const isSelected = selectedId === npc.id;
+              const candidateLabel = String.fromCharCode(65 + index);
+              const npcImage = imageForNpc(npc);
+              return (
+                <button
+                  key={npc.id}
+                  className={`cultist-atlas-card ${hasTalked ? "has-talked" : ""} ${isSelected ? "accused" : ""} ${isSelected && npc.isCultist && phase !== "hammerAttack" ? "revealed" : ""} ${isSelected && !npc.isCultist && phase === "wrongAccused" ? "innocent reacting" : ""}`}
+                  style={{ "--cultist-image": `url(${npcImage})` } as CSSProperties}
+                  onClick={() => (canAccuse ? accuseNpc(npc) : listenToNpc(npc))}
+                  aria-label={canAccuse ? `${candidateLabel} 후보 지목하기: ${npc.sentence}` : `${candidateLabel} 후보 문장 확인`}
+                >
+                  <img src={npcImage} alt={`${candidateLabel} candidate`} onError={(event) => { event.currentTarget.style.opacity = "0"; }} />
+                  {isSelected && phase === "hammerAttack" && <img className="cultist-atlas-hammer" src={cultistAssets.hammerHero} alt="" aria-hidden="true" />}
+                  {hasTalked && <span className="cultist-atlas-speech">{npc.sentence}</span>}
+                  {isSelected && !npc.isCultist && phase === "wrongAccused" && <span className="cultist-atlas-reaction">{cultistWrongAccusedLine(npc)}</span>}
+                  <i>{candidateLabel}</i>
                   <b>{hasTalked ? npc.sentence : "문장 듣기 전"}</b>
-                  <small>{hasTalked ? "문장 신호 확인됨" : "눌러서 문장 확인"}</small>
-                </div>
-                <button className="cultist-accuse-button" disabled={!canAccuse} onClick={() => accuseNpc(npc)}>
-                  {canAccuse ? "이 NPC가 수상해요" : hasTalked ? "확인 완료" : "먼저 듣기"}
+                  <small>{canAccuse ? "지목하기" : hasTalked ? "확인 완료" : "눌러서 듣기"}</small>
                 </button>
-              </article>
-            );
-          })}
-        </div>
-
-        <div className={`cultist-feedback ${phase === "wrongAccused" ? "error" : phase === "correctReveal" || phase === "cultistFleeing" ? "success" : ""}`}>
-          <img src={sceneAssets.characters.pix} alt="Pix" />
-          <div>
-            <span>Pix Hint</span>
-            {!selectedNpc && <p>{allTalked ? "세 문장을 비교해 보세요. 주어와 동사가 서로 약속을 지키지 않는 후보가 있어요." : "처음에는 모두 같은 로브를 입고 있어요. 외형이 아니라 문장을 근거로 찾아야 해요."}</p>}
-            {phase === "hammerAttack" && <p>Jiho가 말랑망치를 들고 출동합니다. 문법 신호를 확인하는 중...</p>}
-            {phase === "wrongAccused" && selectedNpc && <p>이 NPC는 올바른 문장을 말했어요. "{selectedNpc.sentence}"는 규칙에 맞습니다.</p>}
-            {(phase === "correctReveal" || phase === "cultistFleeing") && selectedNpc && (
-              <p>
-                정답! "{selectedNpc.sentence}"가 깨진 문장이에요.
-                <br />
-                올바른 문장: <b>{selectedNpc.correctSentence}</b>
-                <br />
-                {selectedNpc.grammarPoint}
-              </p>
-            )}
+              );
+            })}
           </div>
-          {phase === "wrongAccused" && <Button onClick={retry}>다시 추리하기</Button>}
-          {(phase === "correctReveal" || phase === "cultistFleeing") && <Button onClick={nextRound}>{round === cultistGrammarCases.length - 1 ? "미션 완료" : "다음 조사"}</Button>}
+          <div className={`cultist-atlas-feedback ${phase === "wrongAccused" ? "error" : phase === "correctReveal" || phase === "cultistFleeing" ? "success" : ""}`} role="status" aria-live="polite">
+            <img src={sceneAssets.characters.pix} alt="Pix" onError={(event) => { event.currentTarget.hidden = true; }} />
+            <p>
+              {!selectedNpc && (allTalked ? "세 문장을 비교해 보세요. 위치 단서와 전치사가 서로 맞지 않는 후보가 있어요." : "처음에는 모두 같은 로브를 입고 있어요. 외형이 아니라 문장을 근거로 찾아야 해요.")}
+              {phase === "hammerAttack" && "Jiho가 말랑망치를 들고 출동합니다. 문법 신호를 확인하는 중..."}
+              {phase === "wrongAccused" && selectedNpc && <>이 NPC는 올바른 문장을 말했어요. <b>{selectedNpc.sentence}</b>는 규칙에 맞습니다.</>}
+              {(phase === "correctReveal" || phase === "cultistFleeing") && selectedNpc && <>정답! <b>{selectedNpc.sentence}</b>가 깨진 문장이에요. 올바른 문장은 <b>{selectedNpc.correctSentence}</b>입니다. {selectedNpc.grammarPoint}</>}
+            </p>
+            {phase === "wrongAccused" && <button className="cultist-atlas-retry" onClick={retry}>다시 추리하기</button>}
+            {(phase === "correctReveal" || phase === "cultistFleeing") && <button className="cultist-atlas-retry" onClick={nextRound}>{round === cultistGrammarCases.length - 1 ? "미션 완료" : "다음 조사"}</button>}
+            <RewardToast show={phase === "correctReveal" || phase === "cultistFleeing"} message="문법 신도 검거 성공!" label="+200 LINGO" />
+          </div>
         </div>
       </section>
     </main>
@@ -1801,7 +2608,7 @@ function TeachMissionHeader({
   return (
     <header className="teach-ai-header">
       <div>
-        <span className="kicker">TeachAI Mission · Mock Mode</span>
+        <span className="kicker">TeachAI Mission · NPC Teach-back</span>
         <h1>{defaultTeachLesson.title}</h1>
         <p>{defaultTeachLesson.missionGoal}</p>
       </div>
@@ -1868,6 +2675,7 @@ function StudentInputPanel({
   answer,
   evaluation,
   pendingSession,
+  submitting = false,
   onAnswerChange,
   onSubmit,
   onAdvance,
@@ -1877,13 +2685,14 @@ function StudentInputPanel({
   answer: string;
   evaluation: TeachEvaluation | null;
   pendingSession: TeachSessionState | null;
+  submitting?: boolean;
   onAnswerChange: (answer: string) => void;
   onSubmit: () => void;
   onAdvance: () => void;
 }) {
   const inputConfig = getTeachInputForLevel(step, scaffoldLevel);
   const locked = Boolean(evaluation?.correct);
-  const canSubmit = answer.trim().length > 0 && !locked;
+  const canSubmit = answer.trim().length > 0 && !locked && !submitting;
 
   return (
     <section className="student-input-panel">
@@ -1929,7 +2738,7 @@ function StudentInputPanel({
       )}
 
       <div className="teach-input-actions">
-        <Button disabled={!canSubmit} onClick={onSubmit}>NPC에게 알려주기</Button>
+        <Button disabled={!canSubmit} onClick={onSubmit}>{submitting ? "NPC가 듣는 중..." : "NPC에게 알려주기"}</Button>
         {evaluation?.correct && (
           <Button variant="ghost" onClick={onAdvance}>
             {pendingSession?.completed ? "결과 보기" : "다음 Teach 단계"}
@@ -2032,6 +2841,58 @@ function TeachResultModal({
   );
 }
 
+function applyTeachEvaluation(
+  session: TeachSessionState,
+  step: TeachMissionStep,
+  answer: string,
+  hintLevel: number,
+  evaluation: TeachEvaluation,
+): TeachSessionState {
+  const nextIndex = evaluation.correct ? session.currentStepIndex + 1 : session.currentStepIndex;
+  const completed = nextIndex >= letsTeachMissionSteps.length;
+  const inputConfig = getTeachInputForLevel(step, session.scaffoldLevel);
+
+  return {
+    ...session,
+    attempts: session.attempts + 1,
+    score: Math.min(100, session.score + evaluation.scoreDelta),
+    currentStepIndex: nextIndex,
+    completed,
+    npcUnderstanding: Math.min(100, session.npcUnderstanding + evaluation.understandingDelta),
+    npcConfidence: Math.min(100, session.npcConfidence + evaluation.confidenceDelta),
+    history: [
+      ...session.history,
+      {
+        stepId: step.id,
+        answer,
+        correct: evaluation.correct,
+        feedback: evaluation.npcMessage,
+        inputType: inputConfig.inputType,
+        scoreDelta: evaluation.scoreDelta,
+        hintLevel,
+      },
+    ],
+  };
+}
+
+function buildEvaluationFromApi(
+  step: TeachMissionStep,
+  answer: string,
+  response: Awaited<ReturnType<typeof sendTeachAiMessage>>,
+): TeachEvaluation {
+  return {
+    correct: response.isCorrect,
+    scoreDelta: response.isCorrect ? response.scoreDelta : 0,
+    npcMessage: response.npcMessage,
+    pixGuide: response.pixGuide,
+    teacherNote: response.teacherNote ?? (response.isCorrect ? step.teacherNote : "아직 설명 신호가 부족합니다. 예시와 규칙을 다시 연결해보세요."),
+    normalizedAnswer: response.normalizedAnswer ?? answer.trim(),
+    understandingDelta: response.isCorrect ? response.npcStateUpdate.understandingDelta : 0,
+    confidenceDelta: response.isCorrect ? response.npcStateUpdate.confidenceDelta : 0,
+    skillKey: step.skillKey,
+  };
+}
+
 function TeachAIStage({ navigate }: { navigate: (screen: Screen) => void }) {
   const [scaffoldLevel, setScaffoldLevel] = useState<ScaffoldLevel>(2);
   const [started, setStarted] = useState(false);
@@ -2041,6 +2902,7 @@ function TeachAIStage({ navigate }: { navigate: (screen: Screen) => void }) {
   const [evaluation, setEvaluation] = useState<TeachEvaluation | null>(null);
   const [result, setResult] = useState<TeachResult | null>(null);
   const [hintLevel, setHintLevel] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
   const step = getCurrentTeachStep(session);
   const progress = result ? 100 : session.npcUnderstanding;
 
@@ -2079,19 +2941,55 @@ function TeachAIStage({ navigate }: { navigate: (screen: Screen) => void }) {
     setSession((value) => ({ ...value, hintUsed: value.hintUsed + 1 }));
   };
 
-  const submitAnswer = () => {
-    if (!answer.trim() || evaluation?.correct) return;
-    const response = submitTeachAnswer(session, step, answer, hintLevel);
-    setEvaluation(response.evaluation);
-    if (response.evaluation.correct) {
-      setPendingSession(response.nextSession);
-    } else {
-      setSession(response.nextSession);
-      setPendingSession(null);
-      if (session.scaffoldLevel === 2 && hintLevel === 0) {
-        setHintLevel(1);
-        setSession((value) => ({ ...value, hintUsed: value.hintUsed + 1 }));
+  const submitAnswer = async () => {
+    if (!answer.trim() || evaluation?.correct || submitting) return;
+    setSubmitting(true);
+
+    try {
+      const apiResponse = await sendTeachAiMessage({
+        sessionId: session.sessionId,
+        lessonId: session.lessonId,
+        teachLevel: session.scaffoldLevel,
+        currentStep: step.type,
+        studentMessage: answer,
+        conversationHistory: session.history,
+        lesson: defaultTeachLesson,
+        step,
+        hintLevel,
+      });
+      const nextEvaluation = buildEvaluationFromApi(step, answer, apiResponse);
+      const nextSession = applyTeachEvaluation(session, step, answer, hintLevel, nextEvaluation);
+
+      setEvaluation(nextEvaluation);
+      if (nextEvaluation.correct) {
+        setPendingSession(nextSession);
+      } else {
+        setSession(nextSession);
+        setPendingSession(null);
+        if (session.scaffoldLevel === 2 && hintLevel === 0) {
+          setHintLevel(1);
+          setSession((value) => ({ ...value, hintUsed: value.hintUsed + 1 }));
+        }
       }
+    } catch (error) {
+      console.warn("TeachAI OpenAI request failed. Falling back to mock evaluator.", error);
+      const response = submitTeachAnswer(session, step, answer, hintLevel);
+      setEvaluation({
+        ...response.evaluation,
+        pixGuide: `${response.evaluation.pixGuide} 빠른 로컬 채점으로 바로 확인했어요.`,
+      });
+      if (response.evaluation.correct) {
+        setPendingSession(response.nextSession);
+      } else {
+        setSession(response.nextSession);
+        setPendingSession(null);
+        if (session.scaffoldLevel === 2 && hintLevel === 0) {
+          setHintLevel(1);
+          setSession((value) => ({ ...value, hintUsed: value.hintUsed + 1 }));
+        }
+      }
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -2110,6 +3008,9 @@ function TeachAIStage({ navigate }: { navigate: (screen: Screen) => void }) {
   if (!started) {
     return (
       <main className="page teach-ai-page">
+        <div className="teach-ai-exit-row">
+          <Button variant="ghost" onClick={() => navigate("do-hub")}>Exit Teach</Button>
+        </div>
         <section className="teach-ai-intro">
           <div className="teach-ai-intro-bg" />
           <div className="teach-ai-intro-copy">
@@ -2160,6 +3061,9 @@ function TeachAIStage({ navigate }: { navigate: (screen: Screen) => void }) {
 
   return (
     <main className="page teach-ai-page teach-ai-active-page">
+      <div className="teach-ai-exit-row">
+        <Button variant="ghost" onClick={() => navigate("do-hub")}>Exit Teach</Button>
+      </div>
       <TeachMissionHeader session={session} progress={progress} />
       <TeachStepProgress currentIndex={session.currentStepIndex} />
       <section className={`teach-ai-stage ${evaluation ? evaluation.correct ? "answer-correct" : "answer-wrong" : ""}`}>
@@ -2187,6 +3091,7 @@ function TeachAIStage({ navigate }: { navigate: (screen: Screen) => void }) {
                 onAnswerChange={updateAnswer}
                 onSubmit={submitAnswer}
                 onAdvance={advanceStep}
+                submitting={submitting}
               />
               <PixHelperPanel
                 step={step}
@@ -2209,9 +3114,9 @@ function DailyResult({ navigate }: { navigate: (screen: Screen) => void }) {
       <div className="result-burst"><span>QUEST COMPLETE</span><h1>Grammia's magic coordinates<br />have been restored.</h1><p>오늘 배운 표현을 사용하고, Milo에게 직접 가르치며 학습을 완성했습니다.</p></div>
       <div className="result-grid">
         <Panel eyebrow="Today's Growth"><div className="reward-big"><div><span>LV earned</span><b>+95</b></div><div><span>Lingco earned</span><b>+30</b></div></div><ProgressBar value={82} label="Quest mastery" tone="gold" /></Panel>
-        <Panel eyebrow="Learning Record"><div className="record-list"><span><b>Words</b>between · near · bank · hospital · magazine · university</span><span><b>Do</b>Sentence Purify · Rune Puzzle · NPC Mission Talk</span><span><b>Teach</b>between과 near의 차이를 Milo에게 설명함</span></div></Panel>
+        <Panel eyebrow="Learning Record"><div className="record-list"><span><b>Words</b>between · near · on · bank · hospital · magazine · box</span><span><b>Do</b>Sentence Purify · Rune Puzzle · NPC Mission Talk · Find the Cultist</span><span><b>Teach</b>between / near / on을 Milo에게 설명함</span></div></Panel>
         <Panel className="insight-card strength" eyebrow="Strength"><h3>문장 구조를 안정적으로 복원했어요.</h3><p>장소 단어를 빠르게 이해하고, 룬 퍼즐에서 올바른 문장 순서를 만들었습니다.</p></Panel>
-        <Panel className="insight-card practice" eyebrow="Needs Practice"><h3>전치사 차이를 한 번 더 확인해요.</h3><p>between과 near를 처음에는 헷갈렸지만 Teach 단계에서 설명하며 이해도가 상승했습니다.</p></Panel>
+        <Panel className="insight-card practice" eyebrow="Needs Practice"><h3>전치사 차이를 한 번 더 확인해요.</h3><p>between, near, on을 처음에는 헷갈렸지만 Teach 단계에서 장소 단서와 함께 설명하며 이해도가 상승했습니다.</p></Panel>
       </div>
       <div className="center-actions"><Button variant="ghost" onClick={() => navigate("home")}>Back to Home</Button><Button onClick={() => navigate("map")}>View Learning Map</Button></div>
     </main>
@@ -2506,6 +3411,94 @@ function DailyIntroFlow({ navigate }: { navigate: (screen: Screen) => void }) {
   );
 }
 
+function getRecommendedDoMissionId(completed: string[]) {
+  const nextMission = doHubMissions.find((mission) => !completed.includes(mission.id));
+  if (nextMission) return nextMission.id;
+
+  const latestCompleted = [...completed]
+    .reverse()
+    .find((id) => doHubMissions.some((mission) => mission.id === id));
+  return latestCompleted ?? doHubMissions[0].id;
+}
+
+function getDoMissionIntro(mission: DoMission) {
+  if (mission.id === "npc") {
+    return {
+      background: doActivityBackgroundByItem["do-roleplay"],
+      character: doActivityAssets.npcMissionTalk.miloConfused,
+      prop: doActivityAssets.npcMissionTalk.routeSignpost,
+      title: "길을 잃은 Milo에게 위치를 알려주는 말하기 미션",
+      task: "Milo의 상황을 읽고 between, near 같은 위치 표현으로 목적지를 안내합니다.",
+      learn: "상황에 맞는 장소 관계 표현",
+    };
+  }
+
+  if (mission.id === "cultist") {
+    return {
+      background: doActivityAssets.findCultist.background,
+      character: cultistAssets.hidden,
+      prop: cultistAssets.hammerHero,
+      title: "위치 전치사 신호가 깨진 NPC를 추리하는 조사 미션",
+      task: "세 NPC의 문장을 차례로 확인한 뒤, 위치 단서와 맞지 않는 전치사를 근거로 후보를 지목합니다.",
+      learn: "between, near, on 의미 구분",
+    };
+  }
+
+  if (mission.id === "rune") {
+    return {
+      background: doActivityBackgroundByItem["do-assembly"],
+      character: doActivityAssets.runePuzzle.doorLocked,
+      prop: doActivityAssets.runePuzzle.wordTile,
+      title: "흩어진 단어 룬을 문장 순서로 조립하는 퍼즐",
+      task: "주어, 동사, 장소 표현의 순서를 생각하며 단어 룬을 올바른 문장으로 복원합니다.",
+      learn: "영어 문장 어순",
+    };
+  }
+
+  return {
+    background: doActivityAssets.sentencePurify.background,
+    character: sceneAssets.characters.jiho,
+    prop: doActivityAssets.sentencePurify.stoneBlank,
+    title: "뜻에 맞는 위치 표현을 골라 문장을 정화하는 미션",
+    task: "한국어 뜻과 문장 맥락을 보고 빈칸에 가장 자연스러운 영어 표현을 선택합니다.",
+    learn: "between, near, on 의미 구분",
+  };
+}
+
+function DoMissionEntryPreview({ mission }: { mission: DoMission }) {
+  const intro = getDoMissionIntro(mission);
+
+  return (
+    <div className={`do-intro-card do-intro-${mission.id}`} style={{ "--do-intro-bg": `url(${intro.background})` } as CSSProperties}>
+      <div className="do-intro-copy">
+        <span>{mission.skill}</span>
+        <h2>{mission.title}</h2>
+        <p>{mission.description}</p>
+        <dl>
+          <div>
+            <dt>Goal</dt>
+            <dd>{mission.objective}</dd>
+          </div>
+          <div>
+            <dt>Reward</dt>
+            <dd>{mission.reward}</dd>
+          </div>
+        </dl>
+      </div>
+      <div className="do-intro-visual" aria-hidden="true">
+        <img className="do-intro-character" src={intro.character} alt="" onError={(event) => { event.currentTarget.hidden = true; }} />
+        <img className="do-intro-prop" src={intro.prop} alt="" onError={(event) => { event.currentTarget.hidden = true; }} />
+        <div className="do-intro-brief">
+          <span>Mission Brief</span>
+          <b>{intro.title}</b>
+          <p>{intro.task}</p>
+          <small>{intro.learn}</small>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function DoHubFlow({
   navigate,
   completed,
@@ -2513,9 +3506,17 @@ function DoHubFlow({
   navigate: (screen: Screen) => void;
   completed: string[];
 }) {
-  const [activeMission, setActiveMission] = useState(doHubMissions[0].id);
+  const [activeMission, setActiveMission] = useState(() => getRecommendedDoMissionId(completed));
   const active = doHubMissions.find((activity) => activity.id === activeMission) ?? doHubMissions[0];
   const allDone = completed.length >= doHubMissions.length;
+
+  useEffect(() => {
+    setActiveMission((current) => {
+      if (!completed.includes(current)) return current;
+      return getRecommendedDoMissionId(completed);
+    });
+  }, [completed]);
+
   return (
     <main className="page do-hub-page">
       <div className="page-heading">
@@ -2524,22 +3525,28 @@ function DoHubFlow({
           <h1>오늘 배운 표현을 써보자.</h1>
           <p>Activity Atlas의 Today's Course와 같은 {doHubMissions.length}개 미션입니다. 모두 완료하면 TeachAI가 열립니다.</p>
         </div>
-        <div className="completion-ring"><b>{completed.length}</b><span>/ {doHubMissions.length} restored</span></div>
+        <div className="do-hub-actions">
+          <Button variant="ghost" onClick={() => navigate("course-select")}>과정표로 돌아가기</Button>
+          <Button variant="ghost" onClick={() => navigate("home")}>홈으로 돌아가기</Button>
+          <div className="completion-ring"><b>{completed.length}</b><span>/ {doHubMissions.length} restored</span></div>
+        </div>
       </div>
       <div className="lesson-flow-strip do-flow-strip">
         <span><b>01</b> Watch 완료</span>
         <span className="active"><b>02</b> Do 미션 진행</span>
         <span className={allDone ? "active" : ""}><b>03</b> TeachAI {allDone ? "열림" : "대기"}</span>
       </div>
-      <div className="mission-board">
-        <section className={`mission-stage mission-${active.id}`}>
-          <div className="mission-stage-top"><span>ACTIVE FIELD MISSION</span><b>{completed.includes(active.id) ? "RESTORED" : "READY"}</b></div>
-          <div className="mission-stage-copy">
-            <span className="mission-code">DO · {active.skill}</span>
-            <h2>{active.title}</h2>
-            <h3>{active.subtitle}</h3>
-            <p>{active.description}</p>
-            <div className="mission-specs"><span><small>OBJECTIVE</small>{active.objective}</span><span><small>REWARD</small>{active.reward}</span></div>
+      <div className="do-entry-board">
+        <section className={`do-entry-stage do-entry-${active.id}`}>
+          <div className="do-entry-top"><span>ACTIVE FIELD MISSION</span><b>{completed.includes(active.id) ? "RESTORED" : "READY"}</b></div>
+          <div className="do-entry-play">
+            <DoMissionEntryPreview mission={active} />
+          </div>
+          <div className="do-entry-action">
+            <span>
+              <b>{active.title}</b>
+              <small>{active.objective}</small>
+            </span>
             <Button onClick={() => navigate(active.screen)}>{completed.includes(active.id) ? "다시 플레이" : "미션 시작"}</Button>
           </div>
         </section>
@@ -2570,6 +3577,10 @@ function ActivitySandboxFlow({ item, phase }: { item: ActivityItem; phase: Activ
   const [cultistPhase, setCultistPhase] = useState<CultistMissionPhase>("selecting");
   const parts = ["He", "is", "standing", "between", "a bank", "and", "a hospital."];
 
+  if (phase !== "do") {
+    return <ActivitySandbox item={item} phase={phase} />;
+  }
+
   if (item.id === "do-battle") {
     return (
       <div className="activity-sandbox sandbox-do scene-do-battle">
@@ -2593,12 +3604,14 @@ function ActivitySandboxFlow({ item, phase }: { item: ActivityItem; phase: Activ
             ))}
           </div>
           {feedback && <p className="atlas-demo-feedback">{feedback}</p>}
+          <RewardToast show={selected === "between"} message="문장 정화 성공!" label="+120 LINGO" />
         </div>
       </div>
     );
   }
 
   if (item.id === "do-assembly") {
+    const scrambledParts = ["hospital.", "a bank", "between", "is", "He", "and", "standing"];
     return (
       <div className="activity-sandbox sandbox-do scene-do-assembly">
         <div className="sandbox-world-shade" />
@@ -2606,7 +3619,7 @@ function ActivitySandboxFlow({ item, phase }: { item: ActivityItem; phase: Activ
           <span className="demo-stage-label">Today's DO 02 · Rune Puzzle</span>
           <h3>{sequence.length ? sequence.join(" ") : "단어 룬을 순서대로 눌러 문장을 완성하세요."}</h3>
           <div className="token-row">
-            {parts.map((part) => (
+            {scrambledParts.map((part) => (
               <button key={part} disabled={sequence.includes(part)} onClick={() => setSequence([...sequence, part])}>{part}</button>
             ))}
           </div>
@@ -2615,21 +3628,33 @@ function ActivitySandboxFlow({ item, phase }: { item: ActivityItem; phase: Activ
             <button onClick={() => setFeedback(sequence.join(" ") === parts.join(" ") ? "문장 룬 복원 성공!" : "아직 순서가 어색해요. 주어 → be동사 → 위치 표현 순서로 다시 보세요.")}>Check</button>
           </div>
           {feedback && <p className="atlas-demo-feedback">{feedback}</p>}
+          <RewardToast show={sequence.join(" ") === parts.join(" ")} message="룬 퍼즐 복원 성공!" label="+140 LINGO" />
         </div>
       </div>
     );
   }
 
   if (item.id === "do-roleplay") {
+    const roleplayCheck = evaluateMiloBakeryAnswer(typed);
+    const roleplaySolved = selected === "roleplay-success";
     return (
       <div className="activity-sandbox sandbox-do scene-do-roleplay">
         <div className="sandbox-world-shade" />
-        <div className="atlas-demo-card roleplay-demo">
+        <div className="atlas-demo-card open-talk-demo roleplay-demo">
+          <img className="do-prop roleplay-milo" src={doActivityAssets.npcMissionTalk.miloConfused} alt="" aria-hidden="true" />
+          <img className="do-prop route-signpost" src={doActivityAssets.npcMissionTalk.routeSignpost} alt="" aria-hidden="true" />
+          <img className="do-prop route-map" src={doActivityAssets.npcMissionTalk.mapFragment} alt="" aria-hidden="true" />
+          <img className="do-prop route-light-path" src={doActivityAssets.npcMissionTalk.routeLightPath} alt="" aria-hidden="true" />
           <span className="demo-stage-label">Today's DO 03 · NPC Mission Talk</span>
-          <div className="ai-bubble"><b>Milo</b><p>I am lost. Is the hospital near the bank?</p></div>
-          <label>답변을 직접 입력해보세요<textarea value={typed} onChange={(event) => setTyped(event.target.value)} placeholder="Try: Yes, the hospital is near the bank." /></label>
-          <button className="lab-action" onClick={() => setFeedback(typed.length > 18 ? "좋아요. NPC가 길을 이해했어요!" : "near 또는 between을 넣어 조금 더 길게 말해보세요.")}>Send response</button>
+          <div className="ai-bubble"><b>Milo</b><p>I can't find the old bakery. Is it near the bank?</p></div>
+          <div className="roleplay-goal"><span>MISSION GOAL</span><b>Guide Milo using this situation</b><small>Use near the bank or next to the bank in a complete answer.</small></div>
+          <label>답변을 직접 입력해보세요<textarea value={typed} onChange={(event) => setTyped(event.target.value)} placeholder="Try: It is near the bank." /></label>
+          <div className="roleplay-actions"><button className="lab-action" onClick={() => {
+            setSelected(roleplayCheck.correct ? "roleplay-success" : "roleplay-retry");
+            setFeedback(roleplayCheck.message);
+          }}>Send response</button></div>
           {feedback && <p className="atlas-demo-feedback">{feedback}</p>}
+          <RewardToast show={roleplaySolved} message="Milo 안내 성공!" label="+200 LINGO" />
         </div>
       </div>
     );
@@ -2641,12 +3666,17 @@ function ActivitySandboxFlow({ item, phase }: { item: ActivityItem; phase: Activ
     const allTalked = cultistTalked.length === demoCase.npcs.length;
     const canAccuse = allTalked && cultistPhase === "selecting";
     const demoProgress = (cultistTalked.length / demoCase.npcs.length) * 100;
+    const pixPrompt = cultistPhase === "hammerAttack"
+      ? "지호가 문법 망치를 휘두르는 중이에요."
+      : cultistPhase === "wrongAccused"
+        ? "오답 NPC는 다시 로브 속으로 돌려보내고, 남은 문장의 전치사 단서를 비교해요."
+        : cultistPhase === "correctReveal" || cultistPhase === "cultistFleeing"
+          ? "문장이 깨진 이유를 확인한 뒤 다시 체험할 수 있어요."
+          : canAccuse
+            ? "세 문장을 모두 들었어요. 규칙을 깨뜨린 NPC를 지목하세요."
+            : "A, B, C를 차례로 눌러 문장을 수집하세요.";
     const imageForDemoNpc = (npc: CultistNpc) => {
-      if (cultistAccused !== npc.id) return cultistAssets.hidden;
-      if (cultistPhase === "wrongAccused") return npc.reactionType === "femaleInnocent" ? cultistAssets.innocentFemale : cultistAssets.innocentMale;
-      if (cultistPhase === "correctReveal") return cultistAssets.cultistIdle;
-      if (cultistPhase === "cultistFleeing") return cultistAssets.cultistFleeing;
-      return cultistAssets.hidden;
+      return cultistNpcImage(npc, cultistAccused === npc.id, cultistPhase);
     };
     const listenToDemoNpc = (npc: CultistNpc) => {
       if (cultistPhase !== "selecting" && cultistPhase !== "wrongAccused") return;
@@ -2667,7 +3697,7 @@ function ActivitySandboxFlow({ item, phase }: { item: ActivityItem; phase: Activ
       setFeedback("뿅망치 판정 중...");
       window.setTimeout(() => {
         setCultistPhase(npc.isCultist ? "correctReveal" : "wrongAccused");
-        setFeedback(npc.isCultist ? "정답! 로브 속 신도가 드러났어요." : "이 문장은 규칙에 맞아요. 다른 후보의 동사를 비교해보세요.");
+        setFeedback(npc.isCultist ? "정답! 로브 속 신도가 드러났어요." : "이 문장은 규칙에 맞아요. 다른 후보의 전치사 단서를 비교해보세요.");
       }, 520);
       if (npc.isCultist) {
         window.setTimeout(() => setCultistPhase("cultistFleeing"), 1250);
@@ -2686,8 +3716,8 @@ function ActivitySandboxFlow({ item, phase }: { item: ActivityItem; phase: Activ
           <header className="cultist-atlas-header">
             <div>
               <span>Today's DO 04 · Grammar Hunt</span>
-              <h3>문법 신호가 깨진 NPC를 찾아라</h3>
-              <p>세 NPC를 눌러 문장을 모두 확인한 뒤, 문법이 틀린 후보를 지목하세요.</p>
+              <h3>위치 전치사 신호가 깨진 NPC를 찾아라</h3>
+              <p>세 NPC를 눌러 문장을 모두 확인한 뒤, 장소 단서와 맞지 않는 전치사를 쓴 후보를 지목하세요.</p>
             </div>
             <div className="cultist-atlas-progress">
               <ProgressBar value={demoProgress} label="Sentence Check" tone="mint" />
@@ -2699,18 +3729,28 @@ function ActivitySandboxFlow({ item, phase }: { item: ActivityItem; phase: Activ
             <span>{demoCase.clue}</span>
             <em>{canAccuse ? "이제 수상한 후보를 지목하세요." : "먼저 A, B, C의 문장을 모두 들어야 합니다."}</em>
           </div>
+          <div className="cultist-atlas-brief" aria-live="polite">
+            <span className={cultistTalked.length > 0 ? "done" : ""}>1. 문장 수집</span>
+            <span className={canAccuse || cultistAccused ? "done" : ""}>2. 규칙 비교</span>
+            <span className={cultistAccused ? "done" : ""}>3. 수상한 NPC 지목</span>
+            <b>{pixPrompt}</b>
+          </div>
           <div className="cultist-atlas-row">
             {demoCase.npcs.map((npc, index) => {
               const hasTalked = cultistTalked.includes(npc.id);
               const isAccused = cultistAccused === npc.id;
+              const demoNpcImage = imageForDemoNpc(npc);
               return (
                 <button
                   key={npc.id}
-                  className={`cultist-atlas-card ${hasTalked ? "has-talked" : ""} ${isAccused ? "accused" : ""} ${isAccused && npc.isCultist && cultistPhase !== "hammerAttack" ? "revealed" : ""} ${isAccused && !npc.isCultist && cultistPhase === "wrongAccused" ? "innocent" : ""}`}
+                  className={`cultist-atlas-card ${hasTalked ? "has-talked" : ""} ${isAccused ? "accused" : ""} ${isAccused && npc.isCultist && cultistPhase !== "hammerAttack" ? "revealed" : ""} ${isAccused && !npc.isCultist && cultistPhase === "wrongAccused" ? "innocent reacting" : ""}`}
+                  style={{ "--cultist-image": `url(${demoNpcImage})` } as CSSProperties}
                   onClick={() => accuseDemoNpc(npc)}
                 >
-                  <img src={imageForDemoNpc(npc)} alt={`${String.fromCharCode(65 + index)} candidate`} />
+                  <img src={demoNpcImage} alt={`${String.fromCharCode(65 + index)} candidate`} onError={(event) => { event.currentTarget.style.opacity = "0"; }} />
                   {isAccused && cultistPhase === "hammerAttack" && <img className="cultist-atlas-hammer" src={cultistAssets.hammerHero} alt="" aria-hidden="true" />}
+                  {hasTalked && <span className="cultist-atlas-speech">{npc.sentence}</span>}
+                  {isAccused && !npc.isCultist && cultistPhase === "wrongAccused" && <span className="cultist-atlas-reaction">{cultistWrongAccusedLine(npc)}</span>}
                   <i>{String.fromCharCode(65 + index)}</i>
                   <b>{hasTalked ? npc.sentence : "문장 듣기"}</b>
                   <small>{canAccuse ? "지목하기" : hasTalked ? "문장 확인됨" : "눌러서 듣기"}</small>
@@ -2718,8 +3758,8 @@ function ActivitySandboxFlow({ item, phase }: { item: ActivityItem; phase: Activ
               );
             })}
           </div>
-          <div className={`cultist-atlas-feedback ${cultistPhase === "wrongAccused" ? "error" : cultistPhase === "correctReveal" || cultistPhase === "cultistFleeing" ? "success" : ""}`}>
-            <img src={sceneAssets.characters.pix} alt="Pix" />
+          <div className={`cultist-atlas-feedback ${cultistPhase === "wrongAccused" ? "error" : cultistPhase === "correctReveal" || cultistPhase === "cultistFleeing" ? "success" : ""}`} role="status" aria-live="polite">
+            <img src={sceneAssets.characters.pix} alt="Pix" onError={(event) => { event.currentTarget.hidden = true; }} />
             <p>
               {!accusedNpc && !feedback && "외형은 모두 같아요. 문장을 근거로 찾아야 합니다."}
               {!accusedNpc && feedback && <>방금 들은 문장: <b>{feedback}</b></>}
@@ -2730,6 +3770,7 @@ function ActivitySandboxFlow({ item, phase }: { item: ActivityItem; phase: Activ
             {cultistPhase === "wrongAccused" && <button className="cultist-atlas-retry" onClick={resetCultistDemo}>다시 추리하기</button>}
             {(cultistPhase === "correctReveal" || cultistPhase === "cultistFleeing") && <button className="cultist-atlas-retry" onClick={resetCultistDemo}>다시 체험하기</button>}
           </div>
+          <RewardToast show={cultistPhase === "correctReveal" || cultistPhase === "cultistFleeing"} message="문법 신도 검거 성공!" label="+200 LINGO" />
         </div>
       </div>
     );
@@ -2741,6 +3782,7 @@ function ActivitySandboxFlow({ item, phase }: { item: ActivityItem; phase: Activ
 function ActivityLabFlow({ navigate }: { navigate: (screen: Screen) => void }) {
   const [phase, setPhase] = useState<ActivityPhase>("watch");
   const [expanded, setExpanded] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const [selection, setSelection] = useState<Record<ActivityPhase, string>>({
     watch: activityLibrary.watch[0].id,
     do: activityLibrary.do[0].id,
@@ -2750,6 +3792,7 @@ function ActivityLabFlow({ navigate }: { navigate: (screen: Screen) => void }) {
   const linkedIds = todayActivityLinks[phase] ?? [];
   const linkedIndex = linkedIds.indexOf(selected.id);
   const isTodayLinked = linkedIndex >= 0;
+  const linkedMissionScreen = phase === "do" ? todayDoMissionScreens[selected.id] : undefined;
   const guide = activityGuides[selected.id] ?? {
     activity: selected.description,
     control: `${selected.input} 방식으로 화면 안내를 따라 조작합니다.`,
@@ -2757,7 +3800,12 @@ function ActivityLabFlow({ navigate }: { navigate: (screen: Screen) => void }) {
   };
 
   useEffect(() => {
-    const close = (event: KeyboardEvent) => event.key === "Escape" && setExpanded(false);
+    const close = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setExpanded(false);
+        setDetailsOpen(false);
+      }
+    };
     window.addEventListener("keydown", close);
     document.body.classList.toggle("activity-focus-open", expanded);
     return () => {
@@ -2765,6 +3813,10 @@ function ActivityLabFlow({ navigate }: { navigate: (screen: Screen) => void }) {
       document.body.classList.remove("activity-focus-open");
     };
   }, [expanded]);
+
+  useEffect(() => {
+    setDetailsOpen(false);
+  }, [phase, selected.id]);
 
   const selectPhase = (nextPhase: ActivityPhase) => {
     if (nextPhase === "teach") {
@@ -2775,7 +3827,10 @@ function ActivityLabFlow({ navigate }: { navigate: (screen: Screen) => void }) {
   };
 
   return (
-    <main className={`page activity-lab-page ${expanded ? "activity-focus-mode" : ""}`}>
+    <main
+      className={`page activity-lab-page activity-${selected.id} ${expanded ? "activity-focus-mode" : ""} ${expanded && detailsOpen ? "activity-details-open" : ""}`}
+      data-bgm-context={`${phase}:${selected.id}`}
+    >
       <div className="activity-lab-heading">
         <div>
           <span className="kicker">Activity Atlas · Prototype Gallery</span>
@@ -2787,7 +3842,7 @@ function ActivityLabFlow({ navigate }: { navigate: (screen: Screen) => void }) {
       <nav className="phase-selector" aria-label="Activity phase">
         {(["watch", "do", "teach"] as ActivityPhase[]).map((item, index) => (
           <button key={item} className={phase === item ? "active" : ""} onClick={() => selectPhase(item)} aria-label={`${index + 1}. ${item.toUpperCase()}`}>
-            <span>0{index + 1}</span><b>{item}</b><small>{item === "teach" ? "TEACHAI 바로 열기" : activityPhaseCopy[item][0]}</small>
+            <span>0{index + 1}</span><b>{item}</b><small>{item === "teach" ? "TEACH 체험" : activityPhaseCopy[item][0]}</small>
           </button>
         ))}
       </nav>
@@ -2815,10 +3870,21 @@ function ActivityLabFlow({ navigate }: { navigate: (screen: Screen) => void }) {
               <h2>{selected.title}</h2>
               <p>{selected.description}</p>
               {isTodayLinked && <small className="preview-route-note">Enter the Englantis에서 실제로 진행되는 활동입니다.</small>}
+              {phase === "do" && <small className="preview-route-note asset-placeholder-note">임시 에셋 모드: 최종 이미지가 오면 같은 자리에 교체됩니다.</small>}
             </div>
             <div className="preview-tools">
               <div className="ai-badge"><i>AI</i><span><b>Adaptive input</b><small>Voice-first · fallback supported</small></span></div>
-              <button className="focus-toggle recommended" onClick={() => setExpanded(!expanded)}>
+              {linkedMissionScreen && <button className="focus-toggle mission-link" onClick={() => navigate(linkedMissionScreen)}><i>▶</i><span>오늘 미션 실행</span><small>실제 학습 흐름으로 이동</small></button>}
+              {expanded && (
+                <button className={`focus-toggle info-toggle ${detailsOpen ? "active" : ""}`} onClick={() => setDetailsOpen((open) => !open)}>
+                  <i>i</i><span>{detailsOpen ? "설명 닫기" : "설명 보기"}</span><small>활동 안내</small>
+                </button>
+              )}
+              <button className="focus-toggle recommended" onClick={() => {
+                const nextExpanded = !expanded;
+                setExpanded(nextExpanded);
+                if (!nextExpanded) setDetailsOpen(false);
+              }}>
                 <i>{expanded ? "×" : "▣"}</i><span>{expanded ? "집중 모드 닫기" : "크게 체험하기"}</span><small>{expanded ? "ESC로 돌아가기" : "추천 · 실제 플레이 화면"}</small>
               </button>
             </div>
@@ -2838,6 +3904,7 @@ function ActivityLabFlow({ navigate }: { navigate: (screen: Screen) => void }) {
 export default function App() {
   const [screen, setScreen] = useState<Screen>("home");
   const [completed, setCompleted] = useState<string[]>([]);
+  const { audioEnabled, bgmTrack, bgmTrackSrc, toggleAudio } = useGameAudio(screen);
   const complete = (id: string) => setCompleted((items) => Array.from(new Set([...items, id])));
   const noHeader = useMemo(() => ["story-intro", "sentence", "weekly-boss", "monthly-boss"].includes(screen), [screen]);
 
@@ -2873,9 +3940,22 @@ export default function App() {
   })();
 
   return (
-    <div className={`app screen-${screen}`}>
+    <div className={`app screen-${screen}`} data-bgm-track={bgmTrack} data-bgm-src={bgmTrackSrc}>
       <div className="ambient-light one" /><div className="ambient-light two" /><div className="noise" />
-      {!noHeader && screen !== "parent" && <Header screen={screen} navigate={setScreen} />}
+      {!noHeader && screen !== "parent" && (
+        <Header screen={screen} navigate={setScreen} audioEnabled={audioEnabled} toggleAudio={toggleAudio} />
+      )}
+      {(noHeader || screen === "parent") && (
+        <button
+          className={`audio-toggle audio-toggle-floating ${audioEnabled ? "is-on" : ""}`}
+          onClick={toggleAudio}
+          aria-pressed={audioEnabled}
+          aria-label={audioEnabled ? "배경음과 효과음 끄기" : "배경음과 효과음 켜기"}
+        >
+          <span className="audio-toggle-light" aria-hidden="true" />
+          <span>{audioEnabled ? "SOUND ON" : "SOUND OFF"}</span>
+        </button>
+      )}
       {content}
     </div>
   );

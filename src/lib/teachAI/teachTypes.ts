@@ -172,6 +172,9 @@ export interface TeachMessageRequest {
   currentStep: TeachStepType;
   studentMessage: string;
   conversationHistory: TeachHistoryItem[];
+  lesson?: TeachLesson;
+  step?: TeachMissionStep;
+  hintLevel?: number;
 }
 
 export interface TeachMessageResponse {
@@ -180,6 +183,8 @@ export interface TeachMessageResponse {
   nextStep: TeachStepType | "complete";
   npcMessage: string;
   pixGuide: string;
+  teacherNote?: string;
+  normalizedAnswer?: string;
   studentInputType: StudentInputType;
   choices: string[];
   blankPrompt: string | null;

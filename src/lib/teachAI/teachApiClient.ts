@@ -14,11 +14,15 @@ export const teachApiRoutes = {
 } as const;
 
 async function postTeachJson<TRequest, TResponse>(url: string, payload: TRequest): Promise<TResponse> {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 7500);
+
   const response = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
-  });
+    signal: controller.signal,
+  }).finally(() => window.clearTimeout(timeout));
 
   if (!response.ok) {
     throw new Error(`TeachAI API request failed: ${response.status}`);

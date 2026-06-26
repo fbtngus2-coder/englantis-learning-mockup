@@ -22,3 +22,5 @@ tmp-activity-shots/
 *.xls
 *.pdf
 *.pptx
+
+.vercel

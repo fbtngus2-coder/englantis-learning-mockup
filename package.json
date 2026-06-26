@@ -4,7 +4,8 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host 0.0.0.0",
+    "dev": "node server/dev.mjs",
+    "dev:vite": "vite --host 0.0.0.0",
     "build": "tsc --noEmit -p tsconfig.app.json && vite build",
     "preview": "vite preview --host 0.0.0.0"
   },
